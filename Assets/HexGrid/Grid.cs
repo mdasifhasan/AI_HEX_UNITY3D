@@ -149,14 +149,16 @@ public class Grid : MonoBehaviour {
 	public int Distance(Tile a, Tile b){
 		return Distance(a.index, b.index);
 	}
-	#endregion
+    #endregion
 
+
+    public bool GenerateOnStart = false;
 	#region Private Methods
 	private void Awake() {
 		if(!inst)
 			inst = this;
-
-		GenerateGrid();
+        if(GenerateOnStart)
+		    GenerateGrid();
 	}
 
 	private void GetMesh() {
