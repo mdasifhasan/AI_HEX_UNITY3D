@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class GameController : MonoBehaviour
 {
@@ -11,10 +12,12 @@ public class GameController : MonoBehaviour
     public Player[] players;
     public List<TileState> tileStates;
     public Grid grid;
+    public GameObject uiRestart;
 
     // Use this for initialization
     void Start()
     {
+        uiRestart.SetActive(false);
         if (grid == null)
             grid = FindObjectOfType<Grid>();
         tileStates = new List<TileState>(FindObjectsOfType<TileState>());
@@ -28,6 +31,11 @@ public class GameController : MonoBehaviour
 
         CheckGameOver();
         StartCoroutine(StartGame());
+    }
+
+    public void Restart()
+    {
+        SceneManager.LoadScene(0);
     }
 
     IEnumerator StartGame()
@@ -53,35 +61,15 @@ public class GameController : MonoBehaviour
         if (go != -1)
         {
             Debug.Log("GameOver: " + go);
+            uiRestart.SetActive(true);
+            if (this.currentTurn == 0)
+                textCurrentPlayer.text = "Winner: Player 1";
+            else
+                textCurrentPlayer.text = "Winner: Player 2";
             return;
         }
         tileStates.Remove(ts);
         this.currentTurn = (this.currentTurn + 1) % 2;
-        CubeIndex index = ts.GetComponent<Tile>().index;
-        //for (int i = 0; i < 6; i++)
-        //{
-        //    Hex n = Hex.Neighbor(new Hex(index.x, index.y, index.z), i);
-        //    Debug.Log(i + " Neightbour: " + n.q + ", " + n.r + ", " + n.s);
-        //    Tile t = grid.TileAt(n.q, n.r, n.s);
-        //    Debug.Log("Tile found: " + t, t);
-        //    if (t != null)
-        //        t.GetComponent<TileState>().setTileState(2);
-        //}
-
-        //while (true)
-        //{
-        //    Hex n = Hex.Neighbor(new Hex(index.x, index.y, index.z), testDirection);
-        //    //Debug.Log(i + " Neightbour: " + n.q + ", " + n.r + ", " + n.s);
-        //    Tile t = grid.TileAt(n.q, n.r, n.s);
-        //    //Debug.Log("Tile found: " + t, t);
-        //    if (t != null)
-        //        t.GetComponent<TileState>().setTileState(2);
-        //    else
-        //        break;
-        //    index = t.index;
-        //}
-
-
         // this is necessary to switch to next turn after each turn is finished
         isCurrentTurnUpdated = true;
 
