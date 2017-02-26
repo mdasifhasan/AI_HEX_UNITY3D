@@ -22,7 +22,7 @@ public class Grid : MonoBehaviour {
 	public Material lineMaterial;
 
 	//Internal variables
-	private Dictionary<string, Tile> grid = new Dictionary<string, Tile>();
+	public Dictionary<string, Tile> grid = new Dictionary<string, Tile>();
 	private Mesh hexMesh = null;
 	private CubeIndex[] directions = 
 		new CubeIndex[] {
@@ -159,6 +159,12 @@ public class Grid : MonoBehaviour {
 			inst = this;
         if(GenerateOnStart)
 		    GenerateGrid();
+        else
+        {
+            Tile[] tiles = FindObjectsOfType<Tile>();
+            foreach(Tile tile in tiles)
+                grid.Add(tile.index.ToString(), tile);
+        }
 	}
 
 	private void GetMesh() {
@@ -290,49 +296,58 @@ public class Grid : MonoBehaviour {
 		}
 	}
 
-	private Tile CreateHexGO(Vector3 postion, string name) {
-		GameObject go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer), typeof(Tile));
+ //   public Tile tilePrefab;
+	//private Tile CreateHexGO(Vector3 postion, string name) {
+ //       GameObject go = (GameObject)Instantiate(tilePrefab.gameObject);
+	//	go.transform.position = postion;
+	//	go.transform.parent = this.transform;
+	//	return go.GetComponent<Tile>();
+	//}
+    private Tile CreateHexGO(Vector3 postion, string name)
+    {
+        GameObject go = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer), typeof(Tile));
+        if (addColliders)
+            go.AddComponent<MeshCollider>();
 
-		if(addColliders)
-			go.AddComponent<MeshCollider>();
+        if (drawOutlines)
+            go.AddComponent<LineRenderer>();
 
-		if(drawOutlines)
-			go.AddComponent<LineRenderer>();
+        go.transform.position = postion;
+        go.transform.parent = this.transform;
 
-		go.transform.position = postion;
-		go.transform.parent = this.transform;
+        Tile tile = go.GetComponent<Tile>();
+        MeshFilter fil = go.GetComponent<MeshFilter>();
+        MeshRenderer ren = go.GetComponent<MeshRenderer>();
 
-		Tile tile = go.GetComponent<Tile>();
-		MeshFilter fil = go.GetComponent<MeshFilter>();
-		MeshRenderer ren = go.GetComponent<MeshRenderer>();
+        fil.sharedMesh = hexMesh;
 
-		fil.sharedMesh = hexMesh;
+        ren.material = (hexMaterial) ? hexMaterial : UnityEditor.AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
 
-		ren.material = (hexMaterial)? hexMaterial : UnityEditor.AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
+        if (addColliders)
+        {
+            MeshCollider col = go.GetComponent<MeshCollider>();
+            col.sharedMesh = hexMesh;
+        }
 
-		if(addColliders){
-			MeshCollider col = go.GetComponent<MeshCollider>();
-			col.sharedMesh = hexMesh;
-		}
+        if (drawOutlines)
+        {
+            LineRenderer lines = go.GetComponent<LineRenderer>();
+            lines.useLightProbes = false;
+            lines.receiveShadows = false;
 
-		if(drawOutlines) {
-			LineRenderer lines = go.GetComponent<LineRenderer>();
-			lines.useLightProbes = false;
-			lines.receiveShadows = false;
+            lines.SetWidth(0.1f, 0.1f);
+            lines.SetColors(Color.black, Color.black);
+            lines.material = lineMaterial;
 
-			lines.SetWidth(0.1f, 0.1f);
-			lines.SetColors(Color.black, Color.black);
-			lines.material = lineMaterial;
+            lines.SetVertexCount(7);
 
-			lines.SetVertexCount(7);
+            for (int vert = 0; vert <= 6; vert++)
+                lines.SetPosition(vert, Tile.Corner(tile.transform.position, hexRadius, vert, hexOrientation));
+        }
 
-			for(int vert = 0; vert <= 6; vert++)
-				lines.SetPosition(vert, Tile.Corner(tile.transform.position, hexRadius, vert, hexOrientation));
-		}
-
-		return tile;
-	}
-	#endregion
+        return tile;
+    }
+    #endregion
 }
 
 [System.Serializable]

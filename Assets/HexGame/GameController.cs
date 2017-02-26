@@ -3,16 +3,21 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class GameController : MonoBehaviour {
+public class GameController : MonoBehaviour
+{
 
     public int currentTurn = 0;
     public Text textCurrentPlayer;
     public Player[] players;
     public List<TileState> tileStates;
+    public Grid grid;
 
     // Use this for initialization
-    void Start () {
-        tileStates = new List<TileState>( FindObjectsOfType<TileState>() );
+    void Start()
+    {
+        if (grid == null)
+            grid = FindObjectOfType<Grid>();
+        tileStates = new List<TileState>(FindObjectsOfType<TileState>());
         UpdateCurrentPlayerText();
         for (int i = 0; i < players.Length; i++)
         {
@@ -21,9 +26,9 @@ public class GameController : MonoBehaviour {
             p.MyTurnID = i;
         }
         StartCoroutine(StartGame());
-	}
+    }
 
-        IEnumerator StartGame()
+    IEnumerator StartGame()
     {
         textCurrentPlayer.text = "Tossing";
         yield return new WaitForSeconds(.5f);
@@ -38,12 +43,40 @@ public class GameController : MonoBehaviour {
         players[currentTurn].StartPlay(this.tileStates);
     }
 
+    public int testDirection = 0;
     private void OnPlayFinished(TileState ts)
     {
-        isCurrentTurnUpdated = true;
         ts.setTileState(this.currentTurn);
         tileStates.Remove(ts);
         this.currentTurn = (this.currentTurn + 1) % 2;
+        CubeIndex index = ts.GetComponent<Tile>().index;
+        //for (int i = 0; i < 6; i++)
+        //{
+        //    Hex n = Hex.Neighbor(new Hex(index.x, index.y, index.z), i);
+        //    Debug.Log(i + " Neightbour: " + n.q + ", " + n.r + ", " + n.s);
+        //    Tile t = grid.TileAt(n.q, n.r, n.s);
+        //    Debug.Log("Tile found: " + t, t);
+        //    if (t != null)
+        //        t.GetComponent<TileState>().setTileState(2);
+        //}
+
+        while (true)
+        {
+            Hex n = Hex.Neighbor(new Hex(index.x, index.y, index.z), testDirection);
+            //Debug.Log(i + " Neightbour: " + n.q + ", " + n.r + ", " + n.s);
+            Tile t = grid.TileAt(n.q, n.r, n.s);
+            //Debug.Log("Tile found: " + t, t);
+            if (t != null)
+                t.GetComponent<TileState>().setTileState(2);
+            else
+                break;
+            index = t.index;
+        }
+
+
+        // this is necessary to switch to next turn after each turn is finished
+        isCurrentTurnUpdated = true;
+
     }
 
     private void UpdateCurrentPlayerText()
@@ -57,7 +90,8 @@ public class GameController : MonoBehaviour {
 
     bool isCurrentTurnUpdated = false;
     // Update is called once per frame
-    void Update () {
+    void Update()
+    {
         if (isCurrentTurnUpdated)
         {
             UpdateCurrentPlayerText();
