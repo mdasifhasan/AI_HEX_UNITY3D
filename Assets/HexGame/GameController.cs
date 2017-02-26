@@ -26,12 +26,13 @@ public class GameController : MonoBehaviour {
         IEnumerator StartGame()
     {
         textCurrentPlayer.text = "Tossing";
-        yield return new WaitForSeconds(.8f);
+        yield return new WaitForSeconds(.5f);
         textCurrentPlayer.text = "Tossing.";
-        yield return new WaitForSeconds(.8f);
+        yield return new WaitForSeconds(.5f);
         textCurrentPlayer.text = "Tossing..";
-        yield return new WaitForSeconds(.8f);
+        yield return new WaitForSeconds(.5f);
         textCurrentPlayer.text = "Tossing...";
+        yield return new WaitForSeconds(.5f);
         this.currentTurn = Random.Range(0, 2);
         UpdateCurrentPlayerText();
         players[currentTurn].StartPlay(this.tileStates);
