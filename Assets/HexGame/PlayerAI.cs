@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerAI : Player {
-
+    public float testDelay = 0.3f;
     public override void StartPlay(List<TileState> tileStates)
     {
         base.StartPlay(tileStates);
@@ -12,7 +12,7 @@ public class PlayerAI : Player {
 
     IEnumerator StartGame(List<TileState> tileStates)
     {
-        yield return new WaitForSeconds(.8f);
+        yield return new WaitForSeconds(testDelay);
 
         TileState ts = null;
         while (true)
