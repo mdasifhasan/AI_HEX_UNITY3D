@@ -11,6 +11,7 @@ public class GameController : MonoBehaviour
     public Text textCurrentPlayer;
     public Player[] players;
     public List<TileState> tileStates;
+    public List<TileState>[] player_tiles;
     public Grid grid;
     public GameObject uiRestart;
 
@@ -21,6 +22,9 @@ public class GameController : MonoBehaviour
         if (grid == null)
             grid = FindObjectOfType<Grid>();
         tileStates = new List<TileState>(FindObjectsOfType<TileState>());
+        player_tiles = new List<TileState>[2];
+        player_tiles[0] = new List<TileState>();
+        player_tiles[1] = new List<TileState>();
         UpdateCurrentPlayerText();
         for (int i = 0; i < players.Length; i++)
         {
@@ -29,7 +33,6 @@ public class GameController : MonoBehaviour
             p.MyTurnID = i;
         }
 
-        CheckGameOver();
         StartCoroutine(StartGame());
     }
 
@@ -50,14 +53,15 @@ public class GameController : MonoBehaviour
         yield return new WaitForSeconds(.5f);
         this.currentTurn = Random.Range(0, 2);
         UpdateCurrentPlayerText();
-        players[currentTurn].StartPlay(this.tileStates);
+        players[currentTurn].StartPlay(this);
     }
 
     public int testDirection = 0;
     private void OnPlayFinished(TileState ts)
     {
         ts.setTileState(this.currentTurn);
-        int go = CheckGameOver();
+        //int go = CheckGameOver();
+        int go = HexGridUtil.CheckGameOver(grid.grid);
         if (go != -1)
         {
             Debug.Log("GameOver: " + go);
@@ -69,6 +73,7 @@ public class GameController : MonoBehaviour
             return;
         }
         tileStates.Remove(ts);
+        this.player_tiles[this.currentTurn].Add(ts);
         this.currentTurn = (this.currentTurn + 1) % 2;
         // this is necessary to switch to next turn after each turn is finished
         isCurrentTurnUpdated = true;
@@ -164,19 +169,6 @@ public class GameController : MonoBehaviour
         return false;
     }
 
-    public void recurseCheckGameOver(TileState ts, int playerID)
-    {
-        int winner = -1;
-        List<Tile> n = grid.Neighbours(ts.tile);
-        List<TileState> frontier = new List<TileState>();
-        foreach(Tile t in n)
-        {
-            TileState nts = t.GetComponent<TileState>();
-            if (nts.currentState == playerID)
-                frontier.Add(nts);
-        }
-    }
-
     private void UpdateCurrentPlayerText()
     {
         if (this.currentTurn == 0)
@@ -193,7 +185,7 @@ public class GameController : MonoBehaviour
         if (isCurrentTurnUpdated)
         {
             UpdateCurrentPlayerText();
-            players[currentTurn].StartPlay(this.tileStates);
+            players[currentTurn].StartPlay(this);
             isCurrentTurnUpdated = false;
         }
     }

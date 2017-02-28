@@ -14,9 +14,9 @@ public class PlayerHuman : Player
         this.tileClick.enabled = false;
     }
 
-    public override void StartPlay(List<TileState> tileStates)
+    public override void StartPlay(GameController gc)
     {
-        base.StartPlay(tileStates);
+        base.StartPlay(gc);
         this.tileClick.enabled = true;
     }
 
