@@ -10,7 +10,7 @@ public class GameController : MonoBehaviour
     public int currentTurn = 0;
     public Text textCurrentPlayer;
     public Player[] players;
-    public List<TileState> tileStates;
+    public List<TileState> availableTiles;
     public List<TileState>[] player_tiles;
     public Grid grid;
     public GameObject uiRestart;
@@ -21,7 +21,7 @@ public class GameController : MonoBehaviour
         uiRestart.SetActive(false);
         if (grid == null)
             grid = FindObjectOfType<Grid>();
-        tileStates = new List<TileState>(FindObjectsOfType<TileState>());
+        availableTiles = new List<TileState>(FindObjectsOfType<TileState>());
         player_tiles = new List<TileState>[2];
         player_tiles[0] = new List<TileState>();
         player_tiles[1] = new List<TileState>();
@@ -72,7 +72,7 @@ public class GameController : MonoBehaviour
                 textCurrentPlayer.text = "Winner: Player 2";
             return;
         }
-        tileStates.Remove(ts);
+        availableTiles.Remove(ts);
         this.player_tiles[this.currentTurn].Add(ts);
         this.currentTurn = (this.currentTurn + 1) % 2;
         // this is necessary to switch to next turn after each turn is finished

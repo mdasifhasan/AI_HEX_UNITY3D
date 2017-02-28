@@ -20,6 +20,11 @@ public class TileState : MonoBehaviour {
 		
 	}
 
+    public void resetState()
+    {
+        this.currentState = -1;
+    }
+
     public void setTileState(int state)
     {
         Renderer rend = GetComponent<Renderer>();

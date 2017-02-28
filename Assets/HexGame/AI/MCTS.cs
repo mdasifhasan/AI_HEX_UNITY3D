@@ -11,7 +11,7 @@ public class MCTS : MonoBehaviour
     public Dictionary<TileState, List<TileState>> tried = new Dictionary<TileState, List<TileState>>();
     public void UCTSearch()
     {
-        List<TileState> validTiles = new List<TileState>(gc.tileStates);
+        List<TileState> validTiles = new List<TileState>(gc.availableTiles);
         Dictionary<string, Tile> tiles = new Dictionary<string, Tile>(grid.Tiles);
         TileState next = validTiles[Random.Range(0, validTiles.Count)];
         float t = 0;

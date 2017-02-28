@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerAI : Player
+public class PlayerRandom : Player
 {
     public float testDelay = 0.3f;
     public override void StartPlay(GameController gc)
@@ -16,10 +16,7 @@ public class PlayerAI : Player
         yield return new WaitForSeconds(testDelay);
 
         TileState ts = null;
-        //ts = RandomMove(tileStates);
-
-        AlphaBeta ab = new AlphaBeta(this.MyTurnID);
-        ts = ab.NextMove(gc.grid.grid, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], gc.availableTiles);
+        ts = RandomMove(gc.availableTiles);
 
         this.OnPlayFinished(ts);
     }
