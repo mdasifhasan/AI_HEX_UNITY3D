@@ -4,9 +4,57 @@ using UnityEngine;
 public class MovesBank
 {
 
+    public static TileState BridgeTowardsGoal_Player_2(int playerID, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, Dictionary<string, Tile> grid, List<TileState> ignore, bool up)
+    {
+        List<Hex> lineStart, lineGoal;
+        List<TileState> playerTiles;
+        if (playerID == 0)
+        {
+            playerTiles = playerMaxTiles;
+            lineStart = FractionalHex.HexLinedraw(new Hex(0, 0, 0), new Hex(0, 7, -7));
+            lineGoal = FractionalHex.HexLinedraw(new Hex(7, 0, -7), new Hex(7, 7, -14));
+        }
+        else
+        {
+            playerTiles = playerMinTiles;
+            lineStart = FractionalHex.HexLinedraw(new Hex(0, 0, 0), new Hex(7, 0, -7));
+            lineGoal = FractionalHex.HexLinedraw(new Hex(0, 7, -7), new Hex(7, 7, -14));
+        }
+
+        //Debug.Log("PlayerID: " + playerID + " isMax: " + (playerTiles == playerMaxTiles )) ;
+
+        int minD = -1;
+        TileState ts = null;
+        Tile tile = null;
+        foreach (TileState t in playerTiles)
+        {
+            TileState simple = null;
+            if(!up)
+                simple = t.getNeighbour(0, grid);
+            else
+                simple = t.getNeighbour(3, grid);
+            if (simple == null || simple.currentState != -1)
+                continue;
+
+            var n = simple.tile;
+            foreach (Hex g in lineGoal)
+            {
+                int d = Hex.Distance(new Hex(n.index.x, n.index.y, n.index.z), g);
+                if (minD == -1 || minD > d)
+                {
+                    minD = d;
+                    ts = simple;
+                }
+            }
+        }
+        if (tile != null)
+            ts = tile.GetComponent<TileState>();
+        return ts;
+    }
+
     public static TileState BridgeTowardsGoal(int playerID, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, Dictionary<string, Tile> grid, List<TileState> ignore, bool closest)
     {
-        
+
         List<Hex> lineStart, lineGoal;
         List<TileState> playerTiles;
         if (playerID == 0)
@@ -30,46 +78,55 @@ public class MovesBank
         foreach (TileState t in playerTiles)
         {
             List<Tile> nn = HexGridUtil.Neighbours(grid, t.tile);
-            foreach (Tile n in nn) {
+            foreach (Tile n in nn)
+            {
                 if (n.GetComponent<TileState>().currentState != -1)
                     continue;
-                if (ignore != null && ignore.Count > 0 &&  ignore.Contains(n.GetComponent<TileState>()))
+                if (ignore != null && ignore.Count > 0 && ignore.Contains(n.GetComponent<TileState>()))
                     continue;
-                foreach (Hex h in lineStart) {
-                    int d = Hex.Distance(new Hex(n.index.x, n.index.y, n.index.z), new Hex(0, 0, 0));
-                    if (closest) { 
-                        if (minD == -1 || minD > d)
-                        {
-                            minD = d;
-                            tile = n;
-                        }
-                    }
-                    else
+                foreach (Hex h in lineStart)
+                {
+                    foreach (Hex g in lineGoal)
                     {
-                        if (minD == -1 || minD < d)
+                        int d = Hex.Distance(new Hex(n.index.x, n.index.y, n.index.z), g);
+                        if (closest)
                         {
-                            minD = d;
-                            tile = n;
+                            if (minD == -1 || minD > d)
+                            {
+                                minD = d;
+                                tile = n;
+                            }
+                        }
+                        else
+                        {
+                            if (minD == -1 || minD < d)
+                            {
+                                minD = d;
+                                tile = n;
+                            }
                         }
                     }
                 }
                 foreach (Hex h in lineGoal)
                 {
-                    int d = Hex.Distance(new Hex(n.index.x, n.index.y, n.index.z), new Hex(0, 0, 0));
-                    if (closest)
+                    foreach (Hex g in lineGoal)
                     {
-                        if (minD == -1 || minD > d)
+                        int d = Hex.Distance(new Hex(n.index.x, n.index.y, n.index.z), new Hex(0, 0, 0));
+                        if (closest)
                         {
-                            minD = d;
-                            tile = n;
+                            if (minD == -1 || minD > d)
+                            {
+                                minD = d;
+                                tile = n;
+                            }
                         }
-                    }
-                    else
-                    {
-                        if (minD == -1 || minD < d)
+                        else
                         {
-                            minD = d;
-                            tile = n;
+                            if (minD == -1 || minD < d)
+                            {
+                                minD = d;
+                                tile = n;
+                            }
                         }
                     }
                 }
