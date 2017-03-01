@@ -32,26 +32,27 @@ public class AlphaBeta
         i = 0;
         Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, null);
         RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true);
-        TileState t = null;
+        Node t = null;
         int s = -99999;
+        Debug.Log("Search finished after " + i + " iterations");
         if (MaxPlayer)
         {
-            foreach(var c in n.children)
+            foreach (var c in n.children)
             {
-                if(s == -99999)
+                if (s == -99999)
                 {
                     s = c.score;
-                    t = c.tile;
-                    Debug.Log(s + " Move Selected: " + t.tile.index);
+                    t = c;
+                    Debug.Log(s + " Move Selected: " + t.tile.tile.index);
                 }
                 else
                 {
-                    if(s < c.score)
+                    if (s < c.score)
                     {
 
                         s = c.score;
-                        t = c.tile;
-                        Debug.Log(s + " Move Selected: " + t.tile.index);
+                        t = c;
+                        Debug.Log(s + " Move Selected: " + t.tile.tile.index);
                     }
                 }
             }
@@ -63,36 +64,36 @@ public class AlphaBeta
                 if (s == -99999)
                 {
                     s = c.score;
-                    t = c.tile;
-                    Debug.Log(s + " Move Selected: " + t.tile.index);
+                    t = c;
+                    Debug.Log(s + " Move Selected: " + t.tile.tile.index);
                 }
                 else
                 {
                     if (s > c.score)
                     {
                         s = c.score;
-                        t = c.tile;
-                        Debug.Log(s + " Move Selected: " + t.tile.index);
+                        t = c;
+                        Debug.Log(s + " Move Selected: " + t.tile.tile.index);
                     }
                 }
             }
         }
-        if(t != null)
-            Debug.Log("Final Move Selected: " + t.tile.index);
+        if (t != null)
+            Debug.Log("Final Move Selected: " + t.tile.tile.index + ", Note: " + t.note);
         else
-            Debug.Log("No Move Found!!!" );
-        return t;
+            Debug.Log("No Move Found!!!");
+        return t.tile;
     }
 
     static int i = 0;
-    static int budget = 100;
+    static int budget = 500;
     //static int branchingBudget = 4;
-    static int depthBudget = 9;
+    static int depthBudget = 30;
     public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player)
     {
         i++;
         //if(beta < alpha)
-        Debug.Log("iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player);
+        //Debug.Log("iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player);
         if (i > budget)
         {
             //Debug.Log("Breaking for out of budget");
@@ -135,7 +136,7 @@ public class AlphaBeta
                 child.tile.resetState();
                 if (beta < alpha)
                 {
-                    Debug.Log("Pruning:" + "iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player + ": score: " + result.score);
+                    //Debug.Log("Pruning:" + "iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player + ": score: " + result.score);
                     break;
                 }
             }
@@ -172,7 +173,7 @@ public class AlphaBeta
                 child.playerMinTiles.Remove(child.tile);
                 if (beta < alpha)
                 {
-                    Debug.Log("Pruning:" + "iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player + ": score: " + result.score);
+                    //Debug.Log("Pruning:" + "iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player + ": score: " + result.score);
                     selected = child;
                     break;
                 }
@@ -190,6 +191,7 @@ public class Node
     public List<TileState> playerMaxTiles, playerMinTiles, availableTiles;
     int winner = -1;
     public List<Node> children;
+    public string note = "NONE";
     public Node(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, TileState tile)
     {
         this.grid = grid;
@@ -249,29 +251,38 @@ public class Node
     {
         children = new List<Node>();
 
-        var ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, true);
-        createNode(ts, children);
+        TileState ts = null;
+        ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, true);
+        createNode(ts, children, "BridgeTowardsGoal: TRUE");
         ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, false);
-        createNode(ts, children);
+        createNode(ts, children, "BridgeTowardsGoal: FALSE");
 
         ts = MovesBank.maxSafePattern(this.grid, playerID, true);
-        createNode(ts, children);
+        createNode(ts, children, "maxSafePattern: TRUE");
 
         ts = MovesBank.maxSafePattern(this.grid, playerID, false);
-        createNode(ts, children);
+        createNode(ts, children, "maxSafePattern: FALSE");
 
-        if (ts == null) {
+        if (ts == null)
+        {
             ts = MovesBank.addRandomMove(this.availableTiles);
-            createNode(ts, children);
+            createNode(ts, children, "RANDOM");
         }
+        for (int i = 0; i < 20; i++)
+        {
+            ts = MovesBank.addRandomMove(this.availableTiles);
+            createNode(ts, children, "RANDOM");
+        }
+
         // Create your subtree here and return the results
         return children;
     }
-    public Node createNode(TileState ts, List<Node> children)
+    public Node createNode(TileState ts, List<Node> children, string note = "NONE")
     {
         if (ts == null)
             return null;
         Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, ts);
+        n.note = note;
         children.Add(n);
         return n;
     }
@@ -292,9 +303,9 @@ public class Node
 
         if (this.winner != -1)
             if (this.winner == playerID)
-                return 100;
+                return 1000;
             else
-                return -100;
+                return -1000;
 
 
         totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
