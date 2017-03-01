@@ -78,16 +78,16 @@ public class AlphaBeta
             }
         }
         if (t != null)
-            Debug.Log(i + " iterations" + " Final Move Selected: " + t.tile.tile.index + ", Note: " + t.note);
+            Debug.Log(i + " iterations" + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
         else
             Debug.Log(i + " iterations" + " No Move Found!!!");
         return t.tile;
     }
 
     static int i = 0;
-    static int budget = 2500;
+    static int budget = 1500;
     //static int branchingBudget = 4;
-    static int depthBudget = 15;
+    static int depthBudget = 25;
     public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player)
     {
         i++;
@@ -256,11 +256,11 @@ public class Node
         //ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, false);
         //createNode(ts, children, "BridgeTowardsGoal: FALSE");
 
-        //ts = MovesBank.maxSafePattern(this.grid, playerID, true);
-        //createNode(ts, children, "maxSafePattern: TRUE");
+        ts = MovesBank.maxSafePattern(this.grid, playerID, true);
+        createNode(ts, children, "maxSafePattern: TRUE");
 
-        //ts = MovesBank.maxSafePattern(this.grid, playerID, false);
-        //createNode(ts, children, "maxSafePattern: FALSE");
+        ts = MovesBank.maxSafePattern(this.grid, playerID, false);
+        createNode(ts, children, "maxSafePattern: FALSE");
 
         //if (ts == null)
         //{
@@ -268,7 +268,7 @@ public class Node
         //    createNode(ts, children, "RANDOM");
         //}
         List<TileState> currentTiles = new List<TileState>(this.availableTiles);
-        for (int i = 0; i < 220; i++)
+        for (int i = 0; i < 30; i++)
         {
             ts = MovesBank.addRandomMove(currentTiles);
             currentTiles.Remove(ts);
@@ -310,7 +310,8 @@ public class Node
                 return -1000;
 
 
-        totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
+        //totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
+        totalScore = evaluate(playerMaxTiles, playerID);
 
 
 
