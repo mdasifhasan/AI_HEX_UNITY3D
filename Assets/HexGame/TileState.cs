@@ -42,6 +42,25 @@ public class TileState : MonoBehaviour {
     {
         GetComponent<LineRenderer>().material.color = colorHighlight;
     }
+
+    public TileState highlightNeighbour(int direction, Dictionary<string, Tile> grid)
+    {
+        Hex h = Hex.Neighbor(new Hex(tile.index.x, tile.index.y, tile.index.z), direction);
+        Tile t = HexGridUtil.TileAt(grid, h.q, h.r, h.s);
+        TileState ts = t.GetComponent<TileState>();
+        ts.highlight();
+        return ts;
+    }
+    public TileState getNeighbour(int direction, Dictionary<string, Tile> grid)
+    {
+        Hex h = Hex.Neighbor(new Hex(tile.index.x, tile.index.y, tile.index.z), direction);
+        Tile t = HexGridUtil.TileAt(grid, h.q, h.r, h.s);
+        if (t == null)
+            return null;
+        TileState ts = t.GetComponent<TileState>();
+        return ts;
+    }
+
     public void resetHighLight()
     {
         GetComponent<LineRenderer>().material.color = colorLine;

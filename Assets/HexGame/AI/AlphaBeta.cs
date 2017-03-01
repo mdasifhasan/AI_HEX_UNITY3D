@@ -31,8 +31,8 @@ public class AlphaBeta
     }
 
     static int i = 0;
-    static int budget = 500;
-    static int branchingBudget = 20;
+    static int budget = 100;
+    static int branchingBudget = 4;
     static int depthBudget = 2;
     public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player)
     {
@@ -40,7 +40,7 @@ public class AlphaBeta
         Debug.Log("iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player);
         if (i > budget)
         {
-            Debug.Log("Breaking for out of budget");
+            //Debug.Log("Breaking for out of budget");
             return new RetIterate(node.GetTotalScore(this.playerID, Player), node);
         }
 
@@ -59,16 +59,16 @@ public class AlphaBeta
             //foreach (Node child in node.Children(Player))
             Node child;
 
-            while ((child = node.getNextChildNode(Player)) != null)
+            while ((child = node.getNextChildNode(this.playerID)) != null)
             {
                 m++;
                 if (m > branchingBudget)
                     break;
-                Debug.Log("m: "+ m);
+                //Debug.Log("m: "+ m);
                 //Debug.Log("child " + child.tile.tile.index);
                 if (i > budget)
                 {
-                    Debug.Log("Breaking for out of budget");
+                    //Debug.Log("Breaking for out of budget");
                     break;
                 }
                 child.tile.currentState = this.playerID;
@@ -98,15 +98,15 @@ public class AlphaBeta
             Node selected = null;
             //foreach (Node child in node.Children(Player))
             Node child;
-            while ((child = node.getNextChildNode(Player)) != null)
+            while ((child = node.getNextChildNode(1 - this.playerID)) != null)
             {
                 m++;
                 if (m > branchingBudget)
                     break;
-                Debug.Log("m: " + m);
+                //Debug.Log("m: " + m);
                 if (i > budget)
                 {
-                    Debug.Log("Breaking for out of budget");
+                    //Debug.Log("Breaking for out of budget");
                     break;
                 }
                 //Debug.Log("child " + child.tile.tile.index);
@@ -152,37 +152,120 @@ public class Node
         this.tile = tile;
     }
 
-    public Node getNextChildNode(bool player)
+    public TileState getBestTileSafePattern(int playerID)
+    {
+        bool min = false;
+        if (UnityEngine.Random.Range(0, 100) < 50)
+            min = true;
+        int maxEmpty = -1;
+        TileState max_ts = null;
+        foreach (var t in this.grid.Values)
+        {
+
+            int empty = 0;
+            TileState ts = null;
+            TileState t1 = t.GetComponent<TileState>();
+            if (t1.currentState == 1 - playerID)
+                continue;
+            if (t1.currentState == -1 && ts == null)
+                ts = t1;
+            var t2 = t1.getNeighbour(0, this.grid);
+            if (t2 == null || t2.currentState == 1 - playerID)
+                continue;
+            if (t2.currentState == -1 && ts == null)
+                ts = t2;
+            if (t2.currentState == -1)
+                empty++;
+            var t3 = t2.getNeighbour(1, this.grid);
+            if (t3 == null || t3.currentState == 1 - playerID)
+                continue;
+            if (t3.currentState == -1 && ts == null)
+                ts = t3;
+            if (t3.currentState == -1)
+                empty++;
+            var t4 = t2.getNeighbour(0, this.grid);
+            if (t4 == null || t4.currentState == 1 - playerID)
+                continue;
+            if (t4.currentState == -1 && ts == null)
+                ts = t4;
+            if (t4.currentState == -1)
+                empty++;
+            var t5 = t3.getNeighbour(0, this.grid);
+            if (t5 == null || t5.currentState == 1 - playerID)
+                continue;
+            if (t5.currentState == -1 && ts == null)
+                ts = t5;
+            if (t5.currentState == -1)
+                empty++;
+            var t6 = t5.getNeighbour(0, this.grid);
+            if (t6 == null || t6.currentState == 1 - playerID)
+                continue;
+            if (t6.currentState == -1 && ts == null)
+                ts = t6;
+            if (t6.currentState == -1)
+                empty++;
+
+            if (min)
+            {
+                if (maxEmpty == -1 || empty > maxEmpty)
+                {
+                    max_ts = ts;
+                    maxEmpty = empty;
+                }
+            }
+            else
+            {
+                if (maxEmpty == -1 || empty < maxEmpty)
+                {
+                    max_ts = ts;
+                    maxEmpty = empty;
+                }
+            }
+        }
+        if (max_ts != null)
+            Debug.LogError("BestMove min_empty: " + maxEmpty);
+        return max_ts;
+    }
+
+    public Node getNextChildNode(int playerID)
     {
         if (availableTiles.Count == 0)
             return null;
         TileState ts = null;
-        if (UnityEngine.Random.Range(0, 100) < 50)
-            while (true)
-            {
-                ts = this.availableTiles[UnityEngine.Random.Range(0, this.availableTiles.Count)];
-                if (ts.currentState == -1)
-                    break;
-            }
-        else
+        ts = getBestTileSafePattern(playerID);
+        if (ts == null)
         {
-            int i = 0;
-            while (++i < this.playerMaxTiles.Count)
-            {
-                var mx = this.playerMaxTiles[UnityEngine.Random.Range(0, this.playerMaxTiles.Count)];
-                var n = HexGridUtil.Neighbours(this.grid, mx.tile);
-                foreach (var t in n)
+            if (UnityEngine.Random.Range(0, 100) < 50)
+                while (true)
                 {
-                    var p = t.GetComponent<TileState>();
-                    if (p.currentState == -1)
-                    {
-                        ts = p;
+                    ts = this.availableTiles[UnityEngine.Random.Range(0, this.availableTiles.Count)];
+                    if (ts.currentState == -1)
                         break;
+                }
+            else
+            {
+                int i = 0;
+                while (++i < this.playerMaxTiles.Count)
+                {
+                    var mx = this.playerMaxTiles[UnityEngine.Random.Range(0, this.playerMaxTiles.Count)];
+                    var n = HexGridUtil.Neighbours(this.grid, mx.tile);
+                    foreach (var t in n)
+                    {
+                        var p = t.GetComponent<TileState>();
+                        if (p.currentState == -1)
+                        {
+                            ts = p;
+                            break;
+                        }
                     }
                 }
+                if (ts == null)
+                    ts = this.availableTiles[UnityEngine.Random.Range(0, this.availableTiles.Count)];
             }
-            if (ts == null)
-                ts = this.availableTiles[UnityEngine.Random.Range(0, this.availableTiles.Count)];
+        }
+        else
+        {
+            Debug.LogError("BestMove Selected: " + ts.tile.index);
         }
         return new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, ts);
     }

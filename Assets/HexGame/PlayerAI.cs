@@ -13,7 +13,7 @@ public class PlayerAI : Player
 
     IEnumerator StartGame(GameController gc)
     {
-        yield return new WaitForSeconds(testDelay);
+        yield return 1;
 
         TileState ts = null;
         //ts = RandomMove(tileStates);
