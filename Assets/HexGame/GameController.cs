@@ -41,6 +41,12 @@ public class GameController : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
+    public void TestEvaluationFunction(int playerID)
+    {
+        int score = HexGridUtil.evaluate(grid.grid, this.player_tiles[playerID], playerID);
+        Debug.Log(playerID + ": Evaluation score: " + score );
+    }
+
     IEnumerator StartGame()
     {
         //textCurrentPlayer.text = "Tossing";
@@ -74,10 +80,14 @@ public class GameController : MonoBehaviour
         }
         availableTiles.Remove(ts);
         this.player_tiles[this.currentTurn].Add(ts);
+
+        TestEvaluationFunction(this.currentTurn);
+
         this.currentTurn = (this.currentTurn + 1) % 2;
         // this is necessary to switch to next turn after each turn is finished
         isCurrentTurnUpdated = true;
 
+        
     }
 
     private int CheckGameOver()

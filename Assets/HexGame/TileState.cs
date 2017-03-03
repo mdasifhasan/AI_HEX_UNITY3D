@@ -2,6 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public class AstarData
+{
+    public int chainLength = 0;
+    public int h = 0;
+    public int g = 0;
+    public List<TileState> chain = null;
+    public int f
+    {
+        get
+        {
+            return this.g + this.h;
+        }
+    }
+    public AstarData(int h, int g, int layer)
+    {
+        this.h = h;
+        this.g = g;
+        this.chainLength = layer;
+    }
+    public List<TileState> path = new List<TileState>();
+}
+
+
 public class TileState : MonoBehaviour {
     public Color colorBlack = new Color(0, 0, 0, 1);
     public Color colorWhite = new Color(1, 1, 1, 1);
@@ -9,6 +33,7 @@ public class TileState : MonoBehaviour {
     public Color colorLine;
     public int currentState = -1;
     public Tile tile;
+    public AstarData data;
     // Use this for initialization
     void Start () {
         this.tile = GetComponent<Tile>();
