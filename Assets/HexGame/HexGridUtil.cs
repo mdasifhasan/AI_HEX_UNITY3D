@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class HexGridUtil
 {
-
-
     public static int CheckGameOver(Dictionary<string, Tile> grid)
     {
         //Debug.Log("CheckGameOver()");
@@ -23,7 +21,6 @@ public class HexGridUtil
         return -1;
 
     }
-
 
     public static Tile TileAt(Dictionary<string, Tile> grid, int x, int y, int z)
     {
@@ -140,7 +137,7 @@ public class HexGridUtil
 
     public static int evaluate(Dictionary<string, Tile> grid, List<TileState> playerTiles, int playerID)
     {
-        Debug.Log("Evaluating for player: " + playerID);
+        //Debug.Log("Evaluating for player: " + playerID);
         int totalScore = 0;
         List<TileState> frontier = new List<TileState>(playerTiles);
         List<TileState> expanded = new List<TileState>();
@@ -166,7 +163,7 @@ public class HexGridUtil
         int c = 0;
         for (int i = lowestLayerID; i <= lastLayerID; i++)
         {
-            Debug.Log("Working for i: " + i);
+            //Debug.Log("Working for i: " + i);
             if (!tilesByLayer.ContainsKey(i))
                 continue;
             frontier = new List<TileState>(tilesByLayer[i]);
@@ -178,15 +175,15 @@ public class HexGridUtil
             while (frontier.Count > 0)
             {
                 c++;
-                if (c > 100)
+                if (c > 1000)
                 {
-                    Debug.LogError("Checking bridge exceeding time limit");
+                    //Debug.LogError("Checking bridge exceeding time limit");
                     break;
                 }
                 TileState ts = frontier[0];
                 frontier.Remove(ts);
                 expanded.Add(ts);
-                Debug.Log(ts.data.chainLength + ": Current Node: " + ts.tile.index + " frontier: " + frontier.Count + " chainLength: " + ts.data.chainLength);
+                //Debug.Log(ts.data.chainLength + ": Current Node: " + ts.tile.index + " frontier: " + frontier.Count + " chainLength: " + ts.data.chainLength);
                 List<Tile> n = HexGridUtil.Neighbours(grid, ts.tile);
 
                 int parentLayer = getHexIndexForPlayer(playerID, ts);
@@ -201,14 +198,14 @@ public class HexGridUtil
                     if (nts.currentState != playerID)
                         continue;
 
-                    Debug.Log("parentLayer: " + parentLayer + " childLayer: " + childLayer);
+                    //Debug.Log("parentLayer: " + parentLayer + " childLayer: " + childLayer);
                     if (childLayer >= parentLayer)
                     {
                         if (!frontier.Contains(nts) && !expanded.Contains(nts))
                         {
                             nts.data = new AstarData(7 - childLayer, childLayer - i, childLayer - i);
                             addToFrontier(frontier, nts);
-                            Debug.Log("Same Layer Neighbour Node: " + t.index + " chainLength: " + nts.data.chainLength);
+                            //Debug.Log("Same Layer Neighbour Node: " + t.index + " chainLength: " + nts.data.chainLength);
                         }
                         end = false;
                     }
@@ -235,7 +232,7 @@ public class HexGridUtil
                     //    end = false;
                     //}
                 }
-                Debug.Log("After adding childs, frontier length: " + frontier.Count);
+                //Debug.Log("After adding childs, frontier length: " + frontier.Count);
                 //if (end)
                 //{
                 //if (end)
@@ -244,7 +241,7 @@ public class HexGridUtil
                 if (maxChainLength == -1 || maxChainLength < chainLength)
                 {
                     maxChainLength = chainLength;
-                    Debug.Log("maxChainLength updated to: " + maxChainLength);
+                    //Debug.Log("maxChainLength updated to: " + maxChainLength);
                 }
                 //}
             }

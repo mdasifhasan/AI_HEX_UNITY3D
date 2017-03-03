@@ -21,17 +21,24 @@ public class AlphaBeta
     public AlphaBeta(int playerID)
     {
         this.playerID = playerID;
-        if (this.playerID == 0)
-            MaxPlayer = true;
-        else
-            MaxPlayer = false;
+        //if (this.playerID == 0)
+        //    MaxPlayer = true;
+        //else
+        //    MaxPlayer = false;
     }
 
+
+    public static int testMoveNo = 0;
     public TileState NextMove(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles)
     {
+        testMoveNo++;
+        startTime = Time.realtimeSinceStartup;
+        time = 0;
         i = 0;
+        int initialScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
+        //Debug.Log(playerID + " initialScore: " + initialScore );
         Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, null);
-        RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true);
+        RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true, initialScore);
         Node t = null;
         int s = -99999;
         if (MaxPlayer)
@@ -81,28 +88,46 @@ public class AlphaBeta
             Debug.Log(i + " iterations" + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
         else
             Debug.Log(i + " iterations" + " No Move Found!!!");
+        Debug.Log("MaxDepth: " + maxDepth);
         return t.tile;
     }
 
-    static int i = 0;
-    static int budget = 1060;
+    static float time = 0;
+    static float i = 0;
+    static float startTime = Time.realtimeSinceStartup;
+    static int budget = 6;
     //static int branchingBudget = 4;
-    static int depthBudget = 20;
-    public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player)
+    static int depthBudget = 2;
+    public static int totalRandomMoves = 100;
+
+    int maxDepth = -1;
+
+    /*
+     * May be when breaking for out of budget, the score need be backed up
+     */
+    public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player, int initialScore)
     {
+        if (maxDepth == -1 || maxDepth > depth)
+            maxDepth = depth;
         i++;
+        time = Time.realtimeSinceStartup - startTime;
         //if(beta < alpha)
         //Debug.Log(node.note+ " - iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player);
-        if (i > budget)
+        if (time > budget)
         {
-            //Debug.Log("Breaking for out of budget");
-            return new RetIterate(node.GetTotalScore(this.playerID, Player), node);
+            //int score = node.GetTotalScore(this.playerID, Player, initialScore);
+            int score = Player ? 9999 : -9999;
+            node.score = score;
+            Debug.Log("Breaking for out of budget, depth: " + depth + " score: " + node.score);
+            return new RetIterate(score, node);
         }
 
         if (depth == 0 || node.IsTerminal())
         {
-            //Debug.Log("depth == 0 || node.IsTerminal(): " + (depth == 0) + ", " + node.IsTerminal());
-            return new RetIterate(node.GetTotalScore(this.playerID, Player), node);
+            int score = node.GetTotalScore(this.playerID, Player, initialScore);
+            node.score = score;
+            //Debug.Log("depth == 0 || node.IsTerminal(): " + (depth == 0) + ", " + node.IsTerminal() + ", depth: " + depth + " score: " + node.score);
+            return new RetIterate(score, node);
         }
 
         int m = 0;
@@ -114,21 +139,27 @@ public class AlphaBeta
             foreach (Node child in node.Children(this.playerID))
             {
                 //Debug.Log("child " + child.tile.tile.index);
-                if (i > budget)
-                {
-                    //Debug.Log("Breaking for out of budget");
-                    break;
-                }
+                //if (time > budget)
+                //{
+                //    Debug.Log("MAX Breaking for out of budget: " + depth + " selected: " + selected);
+                //    //break;
+                //    if (selected == null)
+                //        return new RetIterate(9999, child);
+                //    else
+                //        break;
+                //}
                 child.tile.currentState = this.playerID;
                 child.playerMaxTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
-                var result = Iterate(child, depth - 1, alpha, beta, !Player);
+                var result = Iterate(child, depth - 1, alpha, beta, !Player, initialScore);
                 //if (result.score == -1 || alpha < result.score)
                 //{                    
                 //    selected = child;
                 //    Debug.Log("SELECTED" + depth + ": curr: " + result.score + ": beta: " + beta + ": Move Selected: " + selected.tile.tile.index);
                 //}
+                int a = alpha;
                 alpha = Math.Max(alpha, result.score);
+                //Debug.Log("Alpha updated from: " + a + " to: " + alpha + " at depth: " + depth);
                 child.score = result.score;
                 child.availableTiles.Add(child.tile);
                 child.playerMaxTiles.Remove(child.tile);
@@ -150,22 +181,28 @@ public class AlphaBeta
             //Node child;
             //while ((child = node.getNextChildNode(1 - this.playerID)) != null)
             {
-                if (i > budget)
-                {
-                    //Debug.Log("Breaking for out of budget");
-                    break;
-                }
+                //if (time > budget)
+                //{
+                //    Debug.Log("MIN Breaking for out of budget: " + depth + " selected: " + selected);
+                //    //break;
+                //    if (selected == null)
+                //        return new RetIterate(-9999, child);
+                //    else
+                //        break;
+                //}
                 //Debug.Log("child " + child.tile.tile.index);
                 child.tile.currentState = 1 - this.playerID;
                 child.playerMinTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
-                var result = Iterate(child, depth - 1, alpha, beta, !Player);
+                var result = Iterate(child, depth - 1, alpha, beta, !Player, initialScore);
                 //Debug.Log(depth + ": curr: " + result.score + ": beta: " + beta + ": Move Selected: " + selected.tile.tile.index);
                 //if (result.score == -1 || beta < result.score) { 
                 //    selected = child;
                 //    Debug.Log("SELECTED " + depth + ": curr: " + result.score + ": beta: " + beta + ": Move Selected: " + selected.tile.tile.index);
                 //}
+                int b = beta;
                 beta = Math.Min(beta, result.score);
+                //Debug.Log("Beta updated from: " + b + " to: " + beta + " at depth: " + depth);
                 child.score = result.score;
                 child.availableTiles.Add(child.tile);
                 child.tile.resetState();
@@ -248,33 +285,45 @@ public class Node
 
     public List<Node> Children(int playerID)
     {
+
+        /*
+         * Defense mechanism
+         * Find Wayout of a blocked column
+         */
         children = new List<Node>();
 
+        Tile[] testMoves = GameObject.FindObjectOfType<GameController>().testMoves;
         TileState ts = null;
+        if (testMoves.Length > AlphaBeta.testMoveNo - 1)
+        {
+            Tile t = testMoves[AlphaBeta.testMoveNo - 1];
+            var s = t.GetComponent<TileState>();
+            if(s.currentState == -1)
+                createNode(s, children, "TestMove " + AlphaBeta.testMoveNo);
+        }
+        //ts = MovesBank.BridgeTowardsGoal_Player_2(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, true);
+        //createNode(ts, children, "BridgeSimple: TRUE");
+        //ts = MovesBank.BridgeTowardsGoal_Player_2(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, false);
+        //createNode(ts, children, "BridgeSimple: False");
 
-        ts = MovesBank.BridgeTowardsGoal_Player_2(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, true);
-        createNode(ts, children, "BridgeSimple: TRUE");
-        ts = MovesBank.BridgeTowardsGoal_Player_2(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, false);
-        createNode(ts, children, "BridgeSimple: False");
+        //ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, true);
+        //createNode(ts, children, "BridgeTowardsGoal: TRUE");
+        //ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, false);
+        //createNode(ts, children, "BridgeTowardsGoal: FALSE");
 
-        ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, true);
-        createNode(ts, children, "BridgeTowardsGoal: TRUE");
-        ts = MovesBank.BridgeTowardsGoal(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, false);
-        createNode(ts, children, "BridgeTowardsGoal: FALSE");
+        //ts = MovesBank.maxSafePattern(this.grid, playerID, true);
+        //createNode(ts, children, "maxSafePattern: TRUE");
 
-        ts = MovesBank.maxSafePattern(this.grid, playerID, true);
-        createNode(ts, children, "maxSafePattern: TRUE");
+        //ts = MovesBank.maxSafePattern(this.grid, playerID, false);
+        //createNode(ts, children, "maxSafePattern: FALSE");
 
-        ts = MovesBank.maxSafePattern(this.grid, playerID, false);
-        createNode(ts, children, "maxSafePattern: FALSE");
-
-        if (ts == null)
+        if (ts == null && AlphaBeta.testMoveNo > 1)
         {
             ts = MovesBank.addRandomMove(this.availableTiles);
             createNode(ts, children, "RANDOM");
         }
         List<TileState> currentTiles = new List<TileState>(this.availableTiles);
-        for (int i = 0; i < 200; i++)
+        for (int i = 0; i < AlphaBeta.totalRandomMoves; i++)
         {
             ts = MovesBank.addRandomMove(currentTiles);
             currentTiles.Remove(ts);
@@ -305,104 +354,30 @@ public class Node
         return terminalNode;
     }
 
-    public int GetTotalScore(int playerID, bool Player)
+    public int GetTotalScore(int playerID, bool Player, int initialScore)
     {
         int totalScore = 0;
 
-        if (this.winner != -1)
-            if (this.winner == playerID)
-                return 1000;
-            else
-                return -1000;
+        //if (this.winner != -1)
+        //    if (this.winner == playerID)
+        //        return 1000;
+        //    else
+        //        return -1000;
 
 
         //totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
-        totalScore = evaluate(playerMaxTiles, playerID);
-
-
-
-        //int c = 0;
-        //while (frontier.Count > 0)
-        //{
-        //    c++;
-        //    if (c > 1000)
-        //    {
-        //        break;
-        //    }
-        //    TileState ts = frontier[0];
-        //    frontier.RemoveAt(0);
-        //    expanded.Add(ts);
-        //    foreach (TileState t in frontier)
-        //    {
-        //        if (HexGridUtil.IsNeighbour(ts.tile, t.tile))
-        //            totalScore++;
-        //    }
-        //}
-
-        //frontier = new List<TileState>(playerMinTiles);
-        //expanded = new List<TileState>();
-        //c = 0;
-        //int enemyScore = 0;
-        //while (frontier.Count > 0)
-        //{
-        //    c++;
-        //    if (c > 1000)
-        //    {
-        //        break;
-        //    }
-        //    TileState ts = frontier[0];
-        //    frontier.RemoveAt(0);
-        //    expanded.Add(ts);
-        //    foreach (TileState t in frontier)
-        //    {
-        //        if (HexGridUtil.IsNeighbour(ts.tile, t.tile))
-        //            enemyScore++;
-        //    }
-        //}
-        //Debug.Log("TotalScore: " + totalScore + " EnemyScore: " + enemyScore);
-        //return totalScore - enemyScore;
-
+        //totalScore = evaluate(playerMaxTiles, playerID);
+        //totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID) - HexGridUtil.evaluate(grid, playerMinTiles, 1 - playerID);
+        totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
         //Debug.Log("TotalScore: " + totalScore);
         return totalScore;
     }
 
-    int evaluate(List<TileState> playerTiles, int playerID)
+    public override string ToString()
     {
-        int totalScore = 0;
-        List<TileState> frontier = new List<TileState>(playerTiles);
-        List<TileState> expanded = new List<TileState>();
-        int c = 0;
-        while (frontier.Count > 0)
-        {
-            c++;
-            if (c > 1000)
-            {
-                Debug.LogError("Checking bridge exceeding time limit");
-                break;
-            }
-            TileState ts = frontier[0];
-            frontier.RemoveAt(0);
-            expanded.Add(ts);
-            List<Tile> n = HexGridUtil.Neighbours(grid, ts.tile);
-            foreach (Tile t in n)
-            {
-                TileState nts = t.GetComponent<TileState>();
-                if (nts.currentState == playerID)
-                {
-                    if (!expanded.Contains(nts))
-                    {
-                        //nts.highlight();
-                        if (playerTiles.Contains(nts))
-                        {
-                            totalScore++;
-                        }
-                        frontier.Add(nts);
-                    }
-                }
-            }
-        }
-        return totalScore;
-
+        if(this.tile != null)
+            return "Node - tile: " + tile.tile.index + " score: " + score;
+        else
+            return "Node - tile: " + tile + " score: " + score;
     }
-
 }

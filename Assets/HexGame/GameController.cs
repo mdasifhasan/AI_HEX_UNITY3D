@@ -47,6 +47,8 @@ public class GameController : MonoBehaviour
         Debug.Log(playerID + ": Evaluation score: " + score );
     }
 
+    public Tile[] testMoves;
+
     IEnumerator StartGame()
     {
         //textCurrentPlayer.text = "Tossing";
@@ -82,6 +84,7 @@ public class GameController : MonoBehaviour
         this.player_tiles[this.currentTurn].Add(ts);
 
         TestEvaluationFunction(this.currentTurn);
+        TestEvaluationFunction(1 - this.currentTurn);
 
         this.currentTurn = (this.currentTurn + 1) % 2;
         // this is necessary to switch to next turn after each turn is finished
