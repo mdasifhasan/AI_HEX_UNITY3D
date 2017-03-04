@@ -5,7 +5,11 @@ using UnityEngine;
 
 public class PlayerAI : Player
 {
+    
     public float testDelay = 0.3f;
+    public int TimeBudget = 120;
+    public int DepthBudget = 3;
+    public bool randomMoveInLevels = false;
     public override void StartPlay(GameController gc)
     {
         base.StartPlay(gc);
@@ -20,6 +24,9 @@ public class PlayerAI : Player
         //ts = RandomMove(tileStates);
 
         AlphaBeta ab = new AlphaBeta(this.MyTurnID);
+        ab.budget = TimeBudget;
+        ab.depthBudget = DepthBudget;
+        ab.randomMoveInLevels = randomMoveInLevels;
         isMoveComputed = false;
         ts = null;
 

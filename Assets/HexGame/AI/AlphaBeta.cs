@@ -29,7 +29,7 @@ public class AlphaBeta
 
 
     public static int testMoveNo = 0;
-    public void NextMove(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState> callback)
+    public void NextMove( Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState> callback)
     {
         testMoveNo++;
         TimeRecorder.Instance.resetTimer("evaluate");
@@ -95,7 +95,7 @@ public class AlphaBeta
             }
         }
         if (t != null)
-            Debug.Log(i + " iterations" + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
+            Debug.Log(this.playerID+ " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
         else
             Debug.Log(i + " iterations" + " No Move Found!!!");
         //Debug.Log("MaxDepth: " + maxDepth);
@@ -116,13 +116,10 @@ public class AlphaBeta
     static long time = 0;
     static float i = 0;
     static long startTime = 0;
-    static int budget = 120;
+    public int budget = 120;
     //static int branchingBudget = 4;
-    static int depthBudget = 3;
-    static int selectiveSearchDepth = depthBudget - 2;
-    public static bool randomMoveInLevels = false;
-
-    static int bestScoreSoFar;
+    public int depthBudget = 3;
+    public bool randomMoveInLevels = false;
 
     int maxDepth = -1;
 
@@ -149,7 +146,7 @@ public class AlphaBeta
         if (depth == 0 || node.IsTerminal())
         {
             TimeRecorder.Instance.startTimer("node.GetTotalScore");
-            int score = node.GetTotalScore(this.playerID, Player, initialScore);
+            int score = node.GetTotalScore(this.playerID, Player, initialScore, depth);
             node.score = score;
 
             TimeRecorder.Instance.stopTimer("node.GetTotalScore");
@@ -185,7 +182,7 @@ public class AlphaBeta
         {
             //Debug.Log("Max Player");
             Node selected = null;
-            foreach (Node child in node.Children(this.playerID, depthBudget - depth))
+            foreach (Node child in node.Children(this.playerID, depthBudget - depth, this.randomMoveInLevels))
             {
                 //Debug.Log("child " + child.tile.tile.index);
                 //if (time > budget)
@@ -226,7 +223,7 @@ public class AlphaBeta
         {
             //Debug.Log("Min Player");
             Node selected = null;
-            foreach (Node child in node.Children(1 - this.playerID, depthBudget - depth))
+            foreach (Node child in node.Children(1 - this.playerID, depthBudget - depth, this.randomMoveInLevels))
             //Node child;
             //while ((child = node.getNextChildNode(1 - this.playerID)) != null)
             {
@@ -332,7 +329,7 @@ public class Node
         return new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, ts);
     }
 
-    public List<Node> Children(int playerID, int depth)
+    public List<Node> Children(int playerID, int depth, bool randomMoveInLevels)
     {
 
         /*
@@ -367,21 +364,21 @@ public class Node
         //ts = MovesBank.maxSafePattern(this.grid, playerID, false);
         //createNode(ts, children, "maxSafePattern: FALSE");
 
-        if (ts == null && AlphaBeta.testMoveNo > 1)
-        {
-            ts = MovesBank.addRandomMove(this.availableTiles);
-            createNode(ts, children, "RANDOM");
-        }
+        //if (ts == null && AlphaBeta.testMoveNo > 1)
+        //{
+        //    ts = MovesBank.addRandomMove(this.availableTiles);
+        //    createNode(ts, children, "RANDOM");
+        //}
         List<TileState> currentTiles = new List<TileState>(this.availableTiles);
         int totalRandomMoves = 100;
-        if (AlphaBeta.randomMoveInLevels)
+        if (randomMoveInLevels)
         {
             if (depth == 1)
                 totalRandomMoves = 100;
             else if (depth == 2)
-                totalRandomMoves = 7;
+                totalRandomMoves = 50;
             else if (depth == 3)
-                totalRandomMoves = 5;
+                totalRandomMoves = 10;
             else if (depth > 3)
                 totalRandomMoves = 2;
         }
@@ -416,15 +413,15 @@ public class Node
         return terminalNode;
     }
 
-    public int GetTotalScore(int playerID, bool Player, int initialScore)
+    public int GetTotalScore(int playerID, bool Player, int initialScore, int depth)
     {
         int totalScore = 0;
 
         if (this.winner != -1)
             if (this.winner == playerID)
-                return 1000;
+                return 1000 * (depth + 1);
             else
-                return -1000;
+                return -1000 * (depth + 1);
 
 
         //totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
