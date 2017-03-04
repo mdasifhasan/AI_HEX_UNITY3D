@@ -41,7 +41,8 @@ public class AlphaBeta
         TimeRecorder.Instance.resetTimer("Neighbours-1");
         TimeRecorder.Instance.resetTimer("Neighbours-2");
         TimeRecorder.Instance.resetTimer("node.GetTotalScore");
-        //startTime = Time.realtimeSinceStartup;
+        startTime = getTime();
+        //Debug.Log("Start time: " + startTime);
         time = 0;
         i = 0;
         int initialScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
@@ -97,20 +98,27 @@ public class AlphaBeta
             Debug.Log(i + " iterations" + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
         else
             Debug.Log(i + " iterations" + " No Move Found!!!");
-        Debug.Log("MaxDepth: " + maxDepth);
-        //Debug.Log("Time taken: " + (Time.realtimeSinceStartup - startTime));
+        //Debug.Log("MaxDepth: " + maxDepth);
+        Debug.Log("Time taken: " + (getTime() - startTime));
         //TimeRecorder.Instance.printStats();
         callback(t.tile);
 
         //return t.tile;
     }
 
-    static float time = 0;
+    public long getTime()
+    {
+        var dateTimeNow = DateTime.Now;
+        return ((dateTimeNow.Hour * 3600000) + (dateTimeNow.Minute * 60000) + (dateTimeNow.Second * 1000) + dateTimeNow.Millisecond)/1000;
+        //return DateTime.Now..Ticks / TimeSpan.TicksPerSecond / 1000;
+    }
+
+    static long time = 0;
     static float i = 0;
-    static float startTime = Time.realtimeSinceStartup;
+    static long startTime = 0;
     static int budget = 120;
     //static int branchingBudget = 4;
-    static int depthBudget = 5;
+    static int depthBudget = 3;
     static int selectiveSearchDepth = depthBudget - 2;
     public static bool randomMoveInLevels = false;
 
@@ -126,7 +134,7 @@ public class AlphaBeta
         if (maxDepth == -1 || maxDepth > depth)
             maxDepth = depth;
         i++;
-        //time = Time.realtimeSinceStartup - startTime;
+        time = getTime() - startTime;
         //if(beta < alpha)
         //Debug.Log(node.note+ " - iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player);
         if (time > budget)
