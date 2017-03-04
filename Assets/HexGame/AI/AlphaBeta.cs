@@ -33,6 +33,7 @@ public class AlphaBeta
     {
         testMoveNo++;
         startTime = Time.realtimeSinceStartup;
+        timeTakenEvaluating = 0;
         time = 0;
         i = 0;
         int initialScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
@@ -89,19 +90,22 @@ public class AlphaBeta
         else
             Debug.Log(i + " iterations" + " No Move Found!!!");
         Debug.Log("MaxDepth: " + maxDepth);
+        Debug.Log("Time taken: " + (Time.realtimeSinceStartup - startTime));
+        Debug.Log("Time taken Evaluating: " + timeTakenEvaluating);
         return t.tile;
     }
 
     static float time = 0;
     static float i = 0;
     static float startTime = Time.realtimeSinceStartup;
-    static int budget = 6;
+    static int budget = 120;
     //static int branchingBudget = 4;
-    static int depthBudget = 2;
+    static int depthBudget = 4;
     public static int totalRandomMoves = 100;
 
     int maxDepth = -1;
 
+    public static float timeTakenEvaluating = 0;
     /*
      * May be when breaking for out of budget, the score need be backed up
      */
@@ -124,8 +128,11 @@ public class AlphaBeta
 
         if (depth == 0 || node.IsTerminal())
         {
+            float st = Time.realtimeSinceStartup;
             int score = node.GetTotalScore(this.playerID, Player, initialScore);
             node.score = score;
+
+            timeTakenEvaluating += (Time.realtimeSinceStartup - st);
             //Debug.Log("depth == 0 || node.IsTerminal(): " + (depth == 0) + ", " + node.IsTerminal() + ", depth: " + depth + " score: " + node.score);
             return new RetIterate(score, node);
         }
@@ -291,16 +298,17 @@ public class Node
          * Find Wayout of a blocked column
          */
         children = new List<Node>();
-
-        Tile[] testMoves = GameObject.FindObjectOfType<GameController>().testMoves;
         TileState ts = null;
-        if (testMoves.Length > AlphaBeta.testMoveNo - 1)
-        {
-            Tile t = testMoves[AlphaBeta.testMoveNo - 1];
-            var s = t.GetComponent<TileState>();
-            if(s.currentState == -1)
-                createNode(s, children, "TestMove " + AlphaBeta.testMoveNo);
-        }
+        #region testmoves
+        //Tile[] testMoves = GameObject.FindObjectOfType<GameController>().testMoves;
+        //if (testMoves.Length > AlphaBeta.testMoveNo - 1)
+        //{
+        //    Tile t = testMoves[AlphaBeta.testMoveNo - 1];
+        //    var s = t.GetComponent<TileState>();
+        //    if (s.currentState == -1)
+        //        createNode(s, children, "TestMove " + AlphaBeta.testMoveNo);
+        //}
+        #endregion
         //ts = MovesBank.BridgeTowardsGoal_Player_2(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, true);
         //createNode(ts, children, "BridgeSimple: TRUE");
         //ts = MovesBank.BridgeTowardsGoal_Player_2(playerID, this.playerMaxTiles, this.playerMinTiles, this.grid, null, false);
@@ -358,24 +366,24 @@ public class Node
     {
         int totalScore = 0;
 
-        //if (this.winner != -1)
-        //    if (this.winner == playerID)
-        //        return 1000;
-        //    else
-        //        return -1000;
+        if (this.winner != -1)
+            if (this.winner == playerID)
+                return 1000;
+            else
+                return -1000;
 
 
         //totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
         //totalScore = evaluate(playerMaxTiles, playerID);
-        //totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID) - HexGridUtil.evaluate(grid, playerMinTiles, 1 - playerID);
-        totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
+        totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID) - HexGridUtil.evaluate(grid, playerMinTiles, 1 - playerID);
+        //totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
         //Debug.Log("TotalScore: " + totalScore);
         return totalScore;
     }
 
     public override string ToString()
     {
-        if(this.tile != null)
+        if (this.tile != null)
             return "Node - tile: " + tile.tile.index + " score: " + score;
         else
             return "Node - tile: " + tile + " score: " + score;
