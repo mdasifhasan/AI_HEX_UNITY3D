@@ -163,7 +163,7 @@ public class HexGridUtil
         TimeRecorder.Instance.startTimer("evaluate-prepareLayers");
         foreach (TileState t in frontier)
         { 
-            t.isExpanded = false;
+            t.data.isExpanded = false;
             int currentLevel = getHexIndexForPlayer(playerID, t);
             if (lowestLayerID == -1 || lowestLayerID > currentLevel)
                 lowestLayerID = currentLevel;
