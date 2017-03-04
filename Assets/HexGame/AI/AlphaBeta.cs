@@ -369,7 +369,7 @@ public class Node
         //totalScore = evaluate(playerMaxTiles, playerID);
         //totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID) - HexGridUtil.evaluate(grid, playerMinTiles, 1 - playerID);
         totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
-        //Debug.Log("TotalScore: " + totalScore);
+        Debug.Log("TotalScore: " + totalScore);
         return totalScore;
     }
 

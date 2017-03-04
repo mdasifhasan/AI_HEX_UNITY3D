@@ -8,7 +8,7 @@ public class AstarData
     public int chainLength = 0;
     public int h = 0;
     public int g = 0;
-    public List<TileState> chain = null;
+    public int horizontalNeighbours = 0;
     public int f
     {
         get
@@ -16,10 +16,18 @@ public class AstarData
             return this.g + this.h;
         }
     }
-    public AstarData(int h, int g, int layer)
+    public int score
+    {
+        get
+        {
+            return this.chainLength * 100 + this.horizontalNeighbours;
+        }
+    }
+    public AstarData(int h, int g, int layer, int horizontalNeighbours)
     {
         this.h = h;
         this.g = g;
+        this.horizontalNeighbours = horizontalNeighbours;
         this.chainLength = layer;
     }
     public List<TileState> path = new List<TileState>();

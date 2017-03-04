@@ -147,6 +147,7 @@ public class HexGridUtil
         int lowestLayerID = -1;
         int lastLayerID = -1;
         int maxChainLength = 0;
+        List<TileState> maxTile = null;
         foreach (TileState t in frontier)
         {
             int currentLevel = getHexIndexForPlayer(playerID, t);
@@ -169,7 +170,7 @@ public class HexGridUtil
             frontier = new List<TileState>(tilesByLayer[i]);
             foreach (TileState t in frontier)
             {
-                t.data = new AstarData(7 - i, 1, 1);
+                t.data = new AstarData(7 - i, 1, 0, 0);
             }
             int curLayer = i;
             while (frontier.Count > 0)
@@ -177,7 +178,7 @@ public class HexGridUtil
                 c++;
                 if (c > 1000)
                 {
-                    //Debug.LogError("Checking bridge exceeding time limit");
+                    Debug.LogError("Evaluation exceeded time limit");
                     break;
                 }
                 TileState ts = frontier[0];
@@ -187,7 +188,6 @@ public class HexGridUtil
                 List<Tile> n = HexGridUtil.Neighbours(grid, ts.tile);
 
                 int parentLayer = getHexIndexForPlayer(playerID, ts);
-                bool end = true;
                 // for each of the child
                 foreach (Tile t in n)
                 {
@@ -199,53 +199,34 @@ public class HexGridUtil
                         continue;
 
                     //Debug.Log("parentLayer: " + parentLayer + " childLayer: " + childLayer);
-                    if (childLayer >= parentLayer)
+                    if (childLayer > parentLayer)
                     {
                         if (!frontier.Contains(nts) && !expanded.Contains(nts))
                         {
-                            nts.data = new AstarData(7 - childLayer, childLayer - i, childLayer - i);
+                            nts.data = new AstarData(7 - childLayer, childLayer - i, (childLayer - i), ts.data.horizontalNeighbours);
                             addToFrontier(frontier, nts);
-                            //Debug.Log("Same Layer Neighbour Node: " + t.index + " chainLength: " + nts.data.chainLength);
+                            //Debug.Log("Diff Layer Neighbour Node: " + t.index + " chainLength: " + nts.data.chainLength + " horizontalNeighbours: " + nts.data.horizontalNeighbours);
                         }
-                        end = false;
                     }
-
-                    //if (tilesByLayer[curLayer].Contains(nts))
-                    //{
-                    //    if (!frontier.Contains(nts) && !expanded.Contains(nts))
-                    //    {
-                    //        nts.data = new AstarData(7 - curLayer, ts.data.g, curLayer);
-                    //        addToFrontier(frontier, nts);
-                    //        Debug.Log(nts.data.layer + ": Same Layer Neighbour Node: " + t.index + " chainLength: " + nts.data.layer);
-                    //    }
-                    //    end = false;
-                    //}
-                    //else if (tilesByLayer.ContainsKey(curLayer + 1) && tilesByLayer[curLayer + 1].Contains(nts))
-                    //{
-                    //    if (!frontier.Contains(nts) && !expanded.Contains(nts))
-                    //    {
-                    //        nts.data = new AstarData(7 - curLayer, ts.data.g, curLayer + 1);
-                    //        addToFrontier(frontier, nts);
-
-                    //        Debug.Log(nts.data.layer + ": Next Layer Neighbour Node: " + t.index + " chainLength: " + nts.data.layer);
-                    //    }
-                    //    end = false;
-                    //}
+                    else if (childLayer == parentLayer)
+                    {
+                        if (!frontier.Contains(nts) && !expanded.Contains(nts))
+                        {
+                            nts.data = new AstarData(7 - childLayer, childLayer - i, (childLayer - i), ts.data.horizontalNeighbours + 1);
+                            addToFrontier(frontier, nts);
+                            //Debug.Log("Same Layer Neighbour Node: " + t.index + " chainLength: " + nts.data.chainLength + " horizontalNeighbours: " + nts.data.horizontalNeighbours);
+                        }
+                    }
                 }
-                //Debug.Log("After adding childs, frontier length: " + frontier.Count);
-                //if (end)
-                //{
-                //if (end)
-                //    Debug.Log("EnD: " + end + " curMax: " + maxChainLength + " curLayer: " + curLayer);
-                int chainLength = ts.data.chainLength;
+                int chainLength = ts.data.score;
                 if (maxChainLength == -1 || maxChainLength < chainLength)
                 {
                     maxChainLength = chainLength;
-                    //Debug.Log("maxChainLength updated to: " + maxChainLength);
+                    //Debug.Log("maxChainLength updated to: " + maxChainLength + " chainLength: " + ts.data.chainLength + " horizontalNeighbours: " + ts.data.horizontalNeighbours);
                 }
-                //}
             }
         }
+
         totalScore = maxChainLength;
         return totalScore;
     }
