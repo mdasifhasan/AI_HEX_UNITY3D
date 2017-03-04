@@ -3,8 +3,15 @@ using System.Collections.Generic;
 
 public class Tile : MonoBehaviour {
 	public CubeIndex index;
+    public List<Tile> neighbours;
+    public TileState tileState;
 
-	public static Vector3 Corner(Vector3 origin, float radius, int corner, HexOrientation orientation){
+    private void Awake()
+    {
+        this.tileState = GetComponent<TileState>();
+    }
+
+    public static Vector3 Corner(Vector3 origin, float radius, int corner, HexOrientation orientation){
 		float angle = 60 * corner;
 		if(orientation == HexOrientation.Pointy)
 			angle += 30;

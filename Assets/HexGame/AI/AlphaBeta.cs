@@ -32,8 +32,16 @@ public class AlphaBeta
     public TileState NextMove(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles)
     {
         testMoveNo++;
+        TimeRecorder.Instance.resetTimer("evaluate");
+        TimeRecorder.Instance.resetTimer("evaluate-prepareLayers");
+        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop");
+        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-1");
+        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-2");
+        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-3");
+        TimeRecorder.Instance.resetTimer("Neighbours-1");
+        TimeRecorder.Instance.resetTimer("Neighbours-2");
+        TimeRecorder.Instance.resetTimer("node.GetTotalScore");
         startTime = Time.realtimeSinceStartup;
-        timeTakenEvaluating = 0;
         time = 0;
         i = 0;
         int initialScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
@@ -91,7 +99,8 @@ public class AlphaBeta
             Debug.Log(i + " iterations" + " No Move Found!!!");
         Debug.Log("MaxDepth: " + maxDepth);
         Debug.Log("Time taken: " + (Time.realtimeSinceStartup - startTime));
-        Debug.Log("Time taken Evaluating: " + timeTakenEvaluating);
+        TimeRecorder.Instance.printStats();
+        
         return t.tile;
     }
 
@@ -100,12 +109,11 @@ public class AlphaBeta
     static float startTime = Time.realtimeSinceStartup;
     static int budget = 120;
     //static int branchingBudget = 4;
-    static int depthBudget = 4;
+    static int depthBudget = 5;
     public static int totalRandomMoves = 100;
 
     int maxDepth = -1;
 
-    public static float timeTakenEvaluating = 0;
     /*
      * May be when breaking for out of budget, the score need be backed up
      */
@@ -128,11 +136,11 @@ public class AlphaBeta
 
         if (depth == 0 || node.IsTerminal())
         {
-            float st = Time.realtimeSinceStartup;
+            TimeRecorder.Instance.startTimer("node.GetTotalScore");
             int score = node.GetTotalScore(this.playerID, Player, initialScore);
             node.score = score;
 
-            timeTakenEvaluating += (Time.realtimeSinceStartup - st);
+            TimeRecorder.Instance.stopTimer("node.GetTotalScore");
             //Debug.Log("depth == 0 || node.IsTerminal(): " + (depth == 0) + ", " + node.IsTerminal() + ", depth: " + depth + " score: " + node.score);
             return new RetIterate(score, node);
         }

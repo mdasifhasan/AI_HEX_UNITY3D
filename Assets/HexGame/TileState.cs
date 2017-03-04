@@ -9,6 +9,9 @@ public class AstarData
     public int h = 0;
     public int g = 0;
     public int horizontalNeighbours = 0;
+
+
+    public bool isExpanded = false;
     public int f
     {
         get
@@ -30,6 +33,17 @@ public class AstarData
         this.horizontalNeighbours = horizontalNeighbours;
         this.chainLength = layer;
     }
+    public void set(int h, int g, int layer, int horizontalNeighbours)
+    {
+        this.h = h;
+        this.g = g;
+        this.horizontalNeighbours = horizontalNeighbours;
+        this.chainLength = layer;
+    }
+    public AstarData()
+    {
+
+    }
     public List<TileState> path = new List<TileState>();
 }
 
@@ -41,7 +55,8 @@ public class TileState : MonoBehaviour {
     public Color colorLine;
     public int currentState = -1;
     public Tile tile;
-    public AstarData data;
+    public AstarData data = new AstarData();
+
     // Use this for initialization
     void Start () {
         this.tile = GetComponent<Tile>();

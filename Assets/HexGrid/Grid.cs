@@ -165,7 +165,9 @@ public class Grid : MonoBehaviour {
             foreach(Tile tile in tiles)
                 grid.Add(tile.index.ToString(), tile);
         }
-	}
+        foreach (Tile tile in grid.Values)
+             tile.neighbours = Neighbours(tile);
+    }
 
 	private void GetMesh() {
 		hexMesh = null;

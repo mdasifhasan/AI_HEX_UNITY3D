@@ -59,7 +59,8 @@ public class GameController : MonoBehaviour
         //yield return new WaitForSeconds(.5f);
         textCurrentPlayer.text = "Tossing...";
         yield return new WaitForSeconds(.5f);
-        this.currentTurn = Random.Range(0, 2);
+        //this.currentTurn = Random.Range(0, 2);
+        this.currentTurn = 1;
         UpdateCurrentPlayerText();
         players[currentTurn].StartPlay(this);
     }
