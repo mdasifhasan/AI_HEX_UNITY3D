@@ -99,8 +99,8 @@ public class AlphaBeta
             Debug.Log(i + " iterations" + " No Move Found!!!");
         Debug.Log("MaxDepth: " + maxDepth);
         Debug.Log("Time taken: " + (Time.realtimeSinceStartup - startTime));
-        TimeRecorder.Instance.printStats();
-        
+        //TimeRecorder.Instance.printStats();
+
         return t.tile;
     }
 
@@ -110,7 +110,10 @@ public class AlphaBeta
     static int budget = 120;
     //static int branchingBudget = 4;
     static int depthBudget = 5;
-    public static int totalRandomMoves = 100;
+    static int selectiveSearchDepth = depthBudget - 2;
+    public static int totalRandomMoves = 20;
+
+    static int bestScoreSoFar;
 
     int maxDepth = -1;
 
@@ -145,13 +148,35 @@ public class AlphaBeta
             return new RetIterate(score, node);
         }
 
+        //if (depth == selectiveSearchDepth && !Player)
+        //    selectiveSearchDepth++;
+        //if (depth == selectiveSearchDepth)
+        //{
+        //    if (node.score == -1)
+        //        node.score = node.GetTotalScore(this.playerID, Player, initialScore);
+        //    if (node.score > bestScoreSoFar)
+        //    {
+        //        bestScoreSoFar = node.score;
+        //    }
+        //}
+        //if (depth == selectiveSearchDepth+2)
+        //{
+        //    node.score = node.GetTotalScore(this.playerID, Player, initialScore);
+        //    if (node.score <= bestScoreSoFar)
+        //    {
+        //        return new RetIterate(node.score, node);
+        //    }
+        //}
+
+
+
         int m = 0;
         List<TileState> expanded = new List<TileState>();
         if (Player == MaxPlayer)
         {
             //Debug.Log("Max Player");
             Node selected = null;
-            foreach (Node child in node.Children(this.playerID))
+            foreach (Node child in node.Children(this.playerID, depthBudget - depth))
             {
                 //Debug.Log("child " + child.tile.tile.index);
                 //if (time > budget)
@@ -192,7 +217,7 @@ public class AlphaBeta
         {
             //Debug.Log("Min Player");
             Node selected = null;
-            foreach (Node child in node.Children(1 - this.playerID))
+            foreach (Node child in node.Children(1 - this.playerID, depthBudget - depth))
             //Node child;
             //while ((child = node.getNextChildNode(1 - this.playerID)) != null)
             {
@@ -236,7 +261,7 @@ public class AlphaBeta
 
 public class Node
 {
-    public int score = 0;
+    public int score = -1;
     public TileState tile;
     public Dictionary<string, Tile> grid;
     public List<TileState> playerMaxTiles, playerMinTiles, availableTiles;
@@ -298,7 +323,7 @@ public class Node
         return new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, ts);
     }
 
-    public List<Node> Children(int playerID)
+    public List<Node> Children(int playerID, int depth)
     {
 
         /*
@@ -339,13 +364,22 @@ public class Node
             createNode(ts, children, "RANDOM");
         }
         List<TileState> currentTiles = new List<TileState>(this.availableTiles);
-        for (int i = 0; i < AlphaBeta.totalRandomMoves; i++)
+        int totalRandomMoves = 100;
+        if (depth == 1)
+            totalRandomMoves = 100;
+        else if (depth == 2)
+            totalRandomMoves = 7;
+        else if (depth == 3)
+            totalRandomMoves = 5;
+        else if (depth > 3)
+            totalRandomMoves = 2;
+        for (int i = 0; i < totalRandomMoves; i++)
         {
             ts = MovesBank.addRandomMove(currentTiles);
             currentTiles.Remove(ts);
             createNode(ts, children, "RANDOM");
         }
-        //Debug.Log("Total children added: " + this.children.Count);
+        //Debug.Log(depth + " Total children added: " + this.children.Count);
 
         // Create your subtree here and return the results
         return children;
