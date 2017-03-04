@@ -29,7 +29,7 @@ public class AlphaBeta
 
 
     public static int testMoveNo = 0;
-    public TileState NextMove(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles)
+    public void NextMove(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState> callback)
     {
         testMoveNo++;
         TimeRecorder.Instance.resetTimer("evaluate");
@@ -41,7 +41,7 @@ public class AlphaBeta
         TimeRecorder.Instance.resetTimer("Neighbours-1");
         TimeRecorder.Instance.resetTimer("Neighbours-2");
         TimeRecorder.Instance.resetTimer("node.GetTotalScore");
-        startTime = Time.realtimeSinceStartup;
+        //startTime = Time.realtimeSinceStartup;
         time = 0;
         i = 0;
         int initialScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
@@ -98,10 +98,11 @@ public class AlphaBeta
         else
             Debug.Log(i + " iterations" + " No Move Found!!!");
         Debug.Log("MaxDepth: " + maxDepth);
-        Debug.Log("Time taken: " + (Time.realtimeSinceStartup - startTime));
+        //Debug.Log("Time taken: " + (Time.realtimeSinceStartup - startTime));
         //TimeRecorder.Instance.printStats();
+        callback(t.tile);
 
-        return t.tile;
+        //return t.tile;
     }
 
     static float time = 0;
@@ -111,7 +112,7 @@ public class AlphaBeta
     //static int branchingBudget = 4;
     static int depthBudget = 5;
     static int selectiveSearchDepth = depthBudget - 2;
-    public static int totalRandomMoves = 20;
+    public static bool randomMoveInLevels = false;
 
     static int bestScoreSoFar;
 
@@ -125,7 +126,7 @@ public class AlphaBeta
         if (maxDepth == -1 || maxDepth > depth)
             maxDepth = depth;
         i++;
-        time = Time.realtimeSinceStartup - startTime;
+        //time = Time.realtimeSinceStartup - startTime;
         //if(beta < alpha)
         //Debug.Log(node.note+ " - iteration: " + i + ", depth: " + depth + ", alpha: " + alpha + ", beta: " + beta + ", Player: " + Player);
         if (time > budget)
@@ -365,14 +366,17 @@ public class Node
         }
         List<TileState> currentTiles = new List<TileState>(this.availableTiles);
         int totalRandomMoves = 100;
-        if (depth == 1)
-            totalRandomMoves = 100;
-        else if (depth == 2)
-            totalRandomMoves = 7;
-        else if (depth == 3)
-            totalRandomMoves = 5;
-        else if (depth > 3)
-            totalRandomMoves = 2;
+        if (AlphaBeta.randomMoveInLevels)
+        {
+            if (depth == 1)
+                totalRandomMoves = 100;
+            else if (depth == 2)
+                totalRandomMoves = 7;
+            else if (depth == 3)
+                totalRandomMoves = 5;
+            else if (depth > 3)
+                totalRandomMoves = 2;
+        }
         for (int i = 0; i < totalRandomMoves; i++)
         {
             ts = MovesBank.addRandomMove(currentTiles);

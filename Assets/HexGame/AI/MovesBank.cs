@@ -137,11 +137,12 @@ public class MovesBank
         return ts;
     }
 
+    static System.Random Rand = new System.Random();
     public static TileState addRandomMove(List<TileState> availableTiles)
     {
         while (availableTiles.Count > 0)
         {
-            var ts = availableTiles[UnityEngine.Random.Range(0, availableTiles.Count)];
+            var ts = availableTiles[Rand.Next(0, availableTiles.Count)];
             if (ts.currentState == -1)
                 return ts;
         }

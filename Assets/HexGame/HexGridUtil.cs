@@ -45,7 +45,7 @@ public class HexGridUtil
             Tile t = TileAt(grid, n.q, n.r, n.s);
             if (t != null)
             {
-                TileState ts = t.GetComponent<TileState>();
+                TileState ts = t.tileState;
                 //ts.setTileState(2);
                 if (ts.currentState == playerID)
                 {
@@ -59,7 +59,7 @@ public class HexGridUtil
             Tile t = TileAt(grid, n.q, n.r, n.s);
             if (t != null)
             {
-                TileState ts = t.GetComponent<TileState>();
+                TileState ts = t.tileState;
                 //ts.setTileState(2);
                 if (ts.currentState == playerID)
                 {
@@ -85,7 +85,7 @@ public class HexGridUtil
             //List<Tile> n = Neighbours(grid, ts.tile);
             foreach (Tile t in n)
             {
-                TileState nts = t.GetComponent<TileState>();
+                TileState nts = t.tileState;
                 if (nts.currentState == playerID)
                 {
                     if (!expanded.Contains(nts))

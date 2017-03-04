@@ -10,6 +10,9 @@ public class TimeRecorder
 
     public void resetTimer(string key)
     {
+
+        if (true)
+            return;
         if (times.ContainsKey(key))
         {
             times[key] = 0;
@@ -24,6 +27,8 @@ public class TimeRecorder
 
     public void startTimer(string key)
     {
+        if (true)
+            return;
         if (!times.ContainsKey(key))
         {
             times.Add(key, 0);
@@ -33,6 +38,9 @@ public class TimeRecorder
     }
     public void stopTimer(string key)
     {
+
+        if (true)
+            return;
         times[key] += Time.realtimeSinceStartup - running[key];
     }
 
