@@ -94,12 +94,12 @@ public class AlphaBeta
                 }
             }
         }
-        if (t != null)
-            Debug.Log(this.playerID+ " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
-        else
-            Debug.Log(i + " iterations" + " No Move Found!!!");
+        //if (t != null)
+        //    Debug.Log(this.playerID+ " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
+        //else
+        //    Debug.Log(i + " iterations" + " No Move Found!!!");
         //Debug.Log("MaxDepth: " + maxDepth);
-        Debug.Log("Time taken: " + (getTime() - startTime));
+        //Debug.Log("Time taken: " + (getTime() - startTime));
         //TimeRecorder.Instance.printStats();
         callback(t.tile);
 
@@ -139,7 +139,7 @@ public class AlphaBeta
             //int score = node.GetTotalScore(this.playerID, Player, initialScore);
             int score = Player ? 9999 : -9999;
             node.score = score;
-            Debug.Log("Breaking for out of budget, depth: " + depth + " score: " + node.score);
+            //Debug.Log("Breaking for out of budget, depth: " + depth + " score: " + node.score);
             return new RetIterate(score, node);
         }
 

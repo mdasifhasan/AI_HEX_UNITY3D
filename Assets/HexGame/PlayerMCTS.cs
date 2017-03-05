@@ -10,6 +10,8 @@ public class PlayerMCTS : Player
     public int budget = 3;
     Thread thread;
     MCTS mcts;
+    public int weightChainLength = 1;
+    public int weightHorizontalNeighbours = 0;
     public override void StartPlay(GameController gc)
     {
         base.StartPlay(gc);
@@ -26,20 +28,22 @@ public class PlayerMCTS : Player
         mcts = new MCTS();
         mcts.budget = budget;
         isMoveComputed = false;
-
+        AstarData.weightChainLength = weightChainLength;
+        AstarData.weightHorizontalNeighbours = weightHorizontalNeighbours;
         thread = new Thread(() => mcts.UCTSearch(this.MyTurnID, gc.grid.grid, gc.availableTiles, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], callback));
         thread.Start();
     }
     private void OnDestroy()
     {
-        mcts.destroy = true;
+        if (mcts != null)
+            mcts.destroy = true;
     }
 
     bool isMoveComputed = false;
     TileState ts = null;
     void callback(TileState ts)
     {
-        Debug.Log("Move selected: " + ts.tile.index);
+        //Debug.Log("Move selected: " + ts.tile.index);
         isMoveComputed = true;
         this.ts = ts;
     }

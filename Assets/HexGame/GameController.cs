@@ -59,12 +59,15 @@ public class GameController : MonoBehaviour
         //yield return new WaitForSeconds(.5f);
         textCurrentPlayer.text = "Tossing...";
         yield return new WaitForSeconds(.5f);
-        //this.currentTurn = Random.Range(0, 2);
-        this.currentTurn = 1;
+        this.currentTurn = Random.Range(0, 2);
+        //this.currentTurn = 1;
+        //Debug.Log("Toss won by: " + this.currentTurn);
+        tossWon = currentTurn;
         UpdateCurrentPlayerText();
         players[currentTurn].StartPlay(this);
     }
 
+    public int tossWon = 0;
     public int testDirection = 0;
     private void OnPlayFinished(TileState ts)
     {
@@ -73,12 +76,15 @@ public class GameController : MonoBehaviour
         int go = HexGridUtil.CheckGameOver(grid.grid);
         if (go != -1)
         {
-            Debug.Log("GameOver: " + go);
-            uiRestart.SetActive(true);
+            //Debug.Log("GameOver: " + go);
+            //uiRestart.SetActive(true);
             if (this.currentTurn == 0)
                 textCurrentPlayer.text = "Winner: Player 1";
             else
                 textCurrentPlayer.text = "Winner: Player 2";
+            Stats.RecordGame(players[0].gameObject.name, players[1].gameObject.name, tossWon, this.currentTurn);
+            Stats.Print();
+            Restart();
             return;
         }
         availableTiles.Remove(ts);

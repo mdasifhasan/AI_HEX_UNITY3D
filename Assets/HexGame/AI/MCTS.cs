@@ -15,7 +15,8 @@ public class MCTS_Node
     public double delta;
     public int visits = 0;
     public MCTS_Node parent = null;
-    public bool isFullyExpanded() {
+    public bool isFullyExpanded()
+    {
         //Debug.Log("isFullyExpanded: " + (availableTiles.Count == 0));
         return availableTiles.Count == 0;
     }
@@ -23,6 +24,9 @@ public class MCTS_Node
     public MCTS_Node(MCTS_Node parent)
     {
         this.myPlayerID = 1 - parent.myPlayerID;
+        this.myTiles = new List<TileState>(parent.opponentTiles);
+        this.opponentTiles = new List<TileState>(parent.myTiles);
+        this.availableTiles = new List<TileState>(parent.availableTiles);
         this.depth = parent.depth + 1;
         this.parent = parent;
     }
@@ -49,7 +53,7 @@ public class MCTS
         TimeRecorder.Instance.resetTimer("Expand");
         TimeRecorder.Instance.resetTimer("isNonTerminal");
         TimeRecorder.Instance.resetTimer("isNonTerminal - 1");
-        Debug.Log("UCT Search");
+        //Debug.Log("UCT Search");
         try
         {
             int iterations = 0;
@@ -84,36 +88,40 @@ public class MCTS
                 double delta = DefaultPolicy(v);
                 TimeRecorder.Instance.stopTimer("DefaultPolicy");
                 TimeRecorder.Instance.startTimer("Backup");
+
+                //Debug.Log("Backup called from depth: " + v.depth);
+                //Debug.Log("Backup called with delta: " + v.delta);
                 Backup(v, delta);
                 TimeRecorder.Instance.stopTimer("Backup");
                 time = TimeRecorder.Instance.getTime() - startTime;
             }
-            
+
             MCTS_Node bestChild = BestChild(root, 0);
             TileState ts = bestChild.tileState;
 
-            TimeRecorder.Instance.printStat("DefaultPolicy");
-            TimeRecorder.Instance.printStat("TreePolicy");
-            TimeRecorder.Instance.printStat("Backup");
-            TimeRecorder.Instance.printStat("BestChild");
-            TimeRecorder.Instance.printStat("Expand");
-            TimeRecorder.Instance.printStat("isNonTerminal");
-            TimeRecorder.Instance.printStat("isNonTerminal - 1");
+            //TimeRecorder.Instance.printStat("DefaultPolicy");
+            //TimeRecorder.Instance.printStat("TreePolicy");
+            //TimeRecorder.Instance.printStat("Backup");
+            //TimeRecorder.Instance.printStat("BestChild");
+            //TimeRecorder.Instance.printStat("Expand");
+            //TimeRecorder.Instance.printStat("isNonTerminal");
+            //TimeRecorder.Instance.printStat("isNonTerminal - 1");
 
-            int c = 0;
-            foreach(var m in counts.Keys)
-            {
-                c++;
-                if (c > 1000) {
-                    Debug.Log("break print");
-                    break;
-                }
-                if (destroy)
-                    break;
-                Debug.Log(m + " - " + counts[m]);
-            }
+            //int c = 0;
+            //foreach (var m in counts.Keys)
+            //{
+            //    c++;
+            //    if (c > 1000)
+            //    {
+            //        Debug.Log("break print");
+            //        break;
+            //    }
+            //    if (destroy)
+            //        break;
+            //    Debug.Log(m + " - " + counts[m]);
+            //}
 
-            Debug.Log("Total iterations: " + iterations+ " Best child: " + ts.tile.index + " score: " + bestChild.delta + " maxDepth: " + maxDepth);
+            //Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta/ (double) bestChild.visits) + " maxDepth: " + maxDepth);
             callback(ts);
         }
         catch (Exception e)
@@ -129,6 +137,7 @@ public class MCTS
         {
             current.visits++;
             current.delta += delta;
+            delta = -delta;
             current = current.parent;
         }
         while (current != null);
@@ -140,9 +149,13 @@ public class MCTS
         if (v.winner != -1)
             if (v.winner == v.myPlayerID)
             {
-                return 1000 * (100 - v.depth) ;
+                //Debug.Log(v.myPlayerID + " Me Winner depth: " + v.depth);
+                return 1000 ;
             }
-            else return -1000 * (100 - v.depth);
+            else {
+                //Debug.Log(v.myPlayerID + " Opponent Winner depth: " + v.depth);
+                return -1000;
+            }
         return HexGridUtil.evaluate(v.myTiles, v.myPlayerID) - HexGridUtil.evaluate(v.opponentTiles, 1 - v.myPlayerID); ;
     }
 
@@ -152,7 +165,8 @@ public class MCTS
         while (isNonTerminal(current))
             if (!current.isFullyExpanded())
                 return Expand(current);
-            else {
+            else
+            {
                 //Debug.Log("Node fully expanded");
                 MCTS_Node b = BestChild(current, 1.44f);
                 if (b == null)
@@ -169,9 +183,6 @@ public class MCTS
         MCTS_Node child = new MCTS_Node(node);
         TileState ts = node.availableTiles[Rand.Next(0, node.availableTiles.Count)];
         child.tileState = ts;
-        child.availableTiles = new List<TileState>(node.availableTiles);
-        child.myTiles = new List<TileState>(node.opponentTiles);
-        child.opponentTiles = new List<TileState>(node.myTiles);
         child.myTiles.Add(ts);
         node.availableTiles.Remove(ts);
         child.availableTiles.Remove(ts);
@@ -212,9 +223,9 @@ public class MCTS
             return true;
         List<TileState> changed = new List<TileState>();
 
-        foreach(TileState ts in node.myTiles)
+        foreach (TileState ts in node.myTiles)
         {
-            if(ts.currentState == -1)
+            if (ts.currentState == -1)
             {
                 ts.currentState = node.myPlayerID;
                 changed.Add(ts);

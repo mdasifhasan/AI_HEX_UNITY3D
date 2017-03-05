@@ -9,6 +9,8 @@ public class AstarData
     public int h = 0;
     public int g = 0;
     public int horizontalNeighbours = 0;
+    public static int weightChainLength = 1;
+    public static int weightHorizontalNeighbours = 0;
 
 
     public bool isExpanded = false;
@@ -23,7 +25,8 @@ public class AstarData
     {
         get
         {
-            return this.chainLength * 100 + this.horizontalNeighbours;
+            return this.chainLength * weightChainLength + this.horizontalNeighbours * weightHorizontalNeighbours;
+            //return this.chainLength * 100 ;
         }
     }
     public AstarData(int h, int g, int layer, int horizontalNeighbours)

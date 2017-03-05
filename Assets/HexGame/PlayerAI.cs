@@ -10,6 +10,8 @@ public class PlayerAI : Player
     public int TimeBudget = 120;
     public int DepthBudget = 3;
     public bool randomMoveInLevels = false;
+    public int weightChainLength = 1;
+    public int weightHorizontalNeighbours = 0;
     public override void StartPlay(GameController gc)
     {
         base.StartPlay(gc);
@@ -30,6 +32,8 @@ public class PlayerAI : Player
         isMoveComputed = false;
         ts = null;
 
+        AstarData.weightChainLength = this.weightChainLength;
+        AstarData.weightHorizontalNeighbours = this.weightHorizontalNeighbours;
         Thread thread = new Thread(() => ab.NextMove(gc.grid.grid, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], gc.availableTiles, callback));
         thread.Start();
         
