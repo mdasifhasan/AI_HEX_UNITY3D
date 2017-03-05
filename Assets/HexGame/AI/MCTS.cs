@@ -10,7 +10,7 @@ public class MCTS_Node
     public int myPlayerID = 0;
     public TileState tileState = null;
     public List<MCTS_Node> childs = new List<MCTS_Node>();
-    public List<TileState> availableTiles, myTiles, opponentTiles;
+    public List<TileState> possibleMoves, myTiles, opponentTiles;
     public int winner = -1;
     public double delta;
     public int visits = 0;
@@ -18,17 +18,29 @@ public class MCTS_Node
     public bool isFullyExpanded()
     {
         //Debug.Log("isFullyExpanded: " + (availableTiles.Count == 0));
-        return availableTiles.Count == 0;
+        return possibleMoves.Count == 0;
     }
 
     public MCTS_Node(MCTS_Node parent)
     {
-        this.myPlayerID = 1 - parent.myPlayerID;
-        this.myTiles = new List<TileState>(parent.opponentTiles);
-        this.opponentTiles = new List<TileState>(parent.myTiles);
-        this.availableTiles = new List<TileState>(parent.availableTiles);
-        this.depth = parent.depth + 1;
-        this.parent = parent;
+        if (parent.parent == null)
+        {
+            this.myPlayerID = parent.myPlayerID;
+            this.myTiles = new List<TileState>(parent.myTiles);
+            this.opponentTiles = new List<TileState>(parent.opponentTiles);
+            this.possibleMoves = new List<TileState>(parent.possibleMoves);
+            this.depth = parent.depth + 1;
+            this.parent = parent;
+        }
+        else
+        {
+            this.myPlayerID = 1 - parent.myPlayerID;
+            this.myTiles = new List<TileState>(parent.opponentTiles);
+            this.opponentTiles = new List<TileState>(parent.myTiles);
+            this.possibleMoves = new List<TileState>(parent.possibleMoves);
+            this.depth = parent.depth + 1;
+            this.parent = parent;
+        }
     }
     public MCTS_Node(int playerID)
     {
@@ -44,7 +56,7 @@ public class MCTS
     double startTime, time = 0;
     public int budget = 2;
     Dictionary<int, int> counts = new Dictionary<int, int>();
-    public void UCTSearch(int playerID, Dictionary<string, Tile> grid, List<TileState> availableTiles, List<TileState> myTiles, List<TileState> opponentTiles, Action<TileState> callback)
+    public void UCTSearch(int mode, int playerID, Dictionary<string, Tile> grid, List<TileState> availableTiles, List<TileState> myTiles, List<TileState> opponentTiles, Action<TileState> callback)
     {
         TimeRecorder.Instance.resetTimer("DefaultPolicy");
         TimeRecorder.Instance.resetTimer("TreePolicy");
@@ -53,6 +65,7 @@ public class MCTS
         TimeRecorder.Instance.resetTimer("Expand");
         TimeRecorder.Instance.resetTimer("isNonTerminal");
         TimeRecorder.Instance.resetTimer("isNonTerminal - 1");
+        TimeRecorder.Instance.resetTimer("MCTS_AlphaBeta");
         //Debug.Log("UCT Search");
         try
         {
@@ -63,7 +76,7 @@ public class MCTS
             startTime = TimeRecorder.Instance.getTime();
             MCTS_Node root = new MCTS_Node(playerID)
             {
-                availableTiles = new List<TileState>(availableTiles),
+                possibleMoves = new List<TileState>(availableTiles),
                 myTiles = new List<TileState>(myTiles),
                 opponentTiles = new List<TileState>(opponentTiles)
             };
@@ -96,7 +109,7 @@ public class MCTS
                 time = TimeRecorder.Instance.getTime() - startTime;
             }
 
-            MCTS_Node bestChild = BestChild(root, 0);
+            MCTS_Node bestChild = SelectFinalMove(mode, root, 0);
             TileState ts = bestChild.tileState;
 
             //TimeRecorder.Instance.printStat("DefaultPolicy");
@@ -106,6 +119,7 @@ public class MCTS
             //TimeRecorder.Instance.printStat("Expand");
             //TimeRecorder.Instance.printStat("isNonTerminal");
             //TimeRecorder.Instance.printStat("isNonTerminal - 1");
+            TimeRecorder.Instance.printStat("MCTS_AlphaBeta");
 
             //int c = 0;
             //foreach (var m in counts.Keys)
@@ -121,7 +135,7 @@ public class MCTS
             //    Debug.Log(m + " - " + counts[m]);
             //}
 
-            //Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta/ (double) bestChild.visits) + " maxDepth: " + maxDepth);
+            Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta/ (double) bestChild.visits) + " maxDepth: " + maxDepth);
             callback(ts);
         }
         catch (Exception e)
@@ -150,13 +164,24 @@ public class MCTS
             if (v.winner == v.myPlayerID)
             {
                 //Debug.Log(v.myPlayerID + " Me Winner depth: " + v.depth);
-                return 1000 ;
+                return 1000;
             }
-            else {
+            else
+            {
                 //Debug.Log(v.myPlayerID + " Opponent Winner depth: " + v.depth);
                 return -1000;
             }
         return HexGridUtil.evaluate(v.myTiles, v.myPlayerID) - HexGridUtil.evaluate(v.opponentTiles, 1 - v.myPlayerID); ;
+
+        //TimeRecorder.Instance.startTimer("MCTS_AlphaBeta");
+        ////Debug.Log("calling alpha beta");
+        //AlphaBeta ab = new AlphaBeta(v.myPlayerID);
+        //ab.budget = 120;
+        //ab.depthBudget = 2;
+        //Node n = ab.NextMove(this.grid, v.myTiles, v.opponentTiles, v.availableTiles, null);
+        //TimeRecorder.Instance.stopTimer("MCTS_AlphaBeta");
+        //return n.score;
+        //return HexGridUtil.evaluate(v.myTiles, v.myPlayerID);
     }
 
     public MCTS_Node TreePolicy(MCTS_Node node)
@@ -181,17 +206,39 @@ public class MCTS
     {
         TimeRecorder.Instance.startTimer("Expand");
         MCTS_Node child = new MCTS_Node(node);
-        TileState ts = node.availableTiles[Rand.Next(0, node.availableTiles.Count)];
+        TileState ts = node.possibleMoves[Rand.Next(0, node.possibleMoves.Count)];
         child.tileState = ts;
         child.myTiles.Add(ts);
-        node.availableTiles.Remove(ts);
-        child.availableTiles.Remove(ts);
+        node.possibleMoves.Remove(ts);
+        child.possibleMoves.Remove(ts);
         node.childs.Add(child);
         //Debug.Log("expanding child to depth: " + child.depth);
         TimeRecorder.Instance.stopTimer("Expand");
         return child;
     }
+    public MCTS_Node SelectFinalMove(int mode, MCTS_Node current, float C)
+    {
+        MCTS_Node bestChild = null;
+        double best = double.NegativeInfinity;
 
+        foreach (MCTS_Node child in current.childs)
+        {
+            double UCB1 = 0;
+            if (mode == 0)
+                UCB1 = ((double)child.delta / (double)child.visits) + C * Math.Sqrt((2.0 * Math.Log((double)current.visits)) / (double)child.visits);
+            else if (mode == 1)
+                UCB1 = ((double)child.delta / (double)child.visits) * 2 + child.visits;
+            else 
+                UCB1 = child.visits;
+
+            if (UCB1 > best)
+            {
+                bestChild = child;
+                best = UCB1;
+            }
+        }
+        return bestChild;
+    }
     public MCTS_Node BestChild(MCTS_Node current, float C)
     {
         TimeRecorder.Instance.startTimer("BestChild");

@@ -12,6 +12,8 @@ public class PlayerMCTS : Player
     MCTS mcts;
     public int weightChainLength = 1;
     public int weightHorizontalNeighbours = 0;
+
+    public int mode = 0;
     public override void StartPlay(GameController gc)
     {
         base.StartPlay(gc);
@@ -30,7 +32,7 @@ public class PlayerMCTS : Player
         isMoveComputed = false;
         AstarData.weightChainLength = weightChainLength;
         AstarData.weightHorizontalNeighbours = weightHorizontalNeighbours;
-        thread = new Thread(() => mcts.UCTSearch(this.MyTurnID, gc.grid.grid, gc.availableTiles, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], callback));
+        thread = new Thread(() => mcts.UCTSearch(mode, this.MyTurnID, gc.grid.grid, gc.availableTiles, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], callback));
         thread.Start();
     }
     private void OnDestroy()

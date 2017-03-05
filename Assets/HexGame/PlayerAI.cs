@@ -43,7 +43,7 @@ public class PlayerAI : Player
 
     bool isMoveComputed = false;
     TileState ts = null;
-    void callback(TileState ts)
+    void callback(TileState ts, int score)
     {
         isMoveComputed = true;
         this.ts = ts;

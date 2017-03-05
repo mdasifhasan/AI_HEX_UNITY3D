@@ -29,7 +29,7 @@ public class AlphaBeta
 
 
     public static int testMoveNo = 0;
-    public void NextMove( Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState> callback)
+    public Node NextMove( Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState, int> callback)
     {
         testMoveNo++;
         //TimeRecorder.Instance.resetTimer("evaluate");
@@ -45,10 +45,11 @@ public class AlphaBeta
         //Debug.Log("Start time: " + startTime);
         time = 0;
         i = 0;
-        int initialScore = HexGridUtil.evaluate(playerMaxTiles, playerID);
-        //Debug.Log(playerID + " initialScore: " + initialScore );
+        //int initialScore = HexGridUtil.evaluate(playerMaxTiles, playerID);
+        //Debug.Log(playerID + " initialScore: " + initialScore);
+        //Debug.Log(playerID + " alphabeta, available tiles: " + availableTiles.Count);
         Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, null);
-        RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true, initialScore);
+        RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true);
         Node t = null;
         int s = -99999;
         if (MaxPlayer)
@@ -59,7 +60,7 @@ public class AlphaBeta
                 {
                     s = c.score;
                     t = c;
-                    //Debug.Log(s + " Move Selected: " + t.tile.tile.index);
+                    //Debug.Log("1 Move Selected with score: " + s);
                 }
                 else
                 {
@@ -68,7 +69,7 @@ public class AlphaBeta
 
                         s = c.score;
                         t = c;
-                        //Debug.Log(s + " Move Selected: " + t.tile.tile.index);
+                        //Debug.Log("2 Move Selected with score: " + s);
                     }
                 }
             }
@@ -101,8 +102,12 @@ public class AlphaBeta
         //Debug.Log("MaxDepth: " + maxDepth);
         //Debug.Log("Time taken: " + (getTime() - startTime));
         //TimeRecorder.Instance.printStats();
-        callback(t.tile);
 
+        if (callback != null)
+            callback(t.tile, t.score);
+        else
+            return t;
+        return t;
         //return t.tile;
     }
 
@@ -126,7 +131,7 @@ public class AlphaBeta
     /*
      * May be when breaking for out of budget, the score need be backed up
      */
-    public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player, int initialScore)
+    public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player)
     {
         if (maxDepth == -1 || maxDepth > depth)
             maxDepth = depth;
@@ -146,7 +151,7 @@ public class AlphaBeta
         if (depth == 0 || node.IsTerminal())
         {
             //TimeRecorder.Instance.startTimer("node.GetTotalScore");
-            int score = node.GetTotalScore(this.playerID, Player, initialScore, depth);
+            int score = node.GetTotalScore(this.playerID, Player, depth);
             node.score = score;
 
             //TimeRecorder.Instance.stopTimer("node.GetTotalScore");
@@ -197,7 +202,7 @@ public class AlphaBeta
                 child.tile.currentState = this.playerID;
                 child.playerMaxTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
-                var result = Iterate(child, depth - 1, alpha, beta, !Player, initialScore);
+                var result = Iterate(child, depth - 1, alpha, beta, !Player);
                 //if (result.score == -1 || alpha < result.score)
                 //{                    
                 //    selected = child;
@@ -240,7 +245,7 @@ public class AlphaBeta
                 child.tile.currentState = 1 - this.playerID;
                 child.playerMinTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
-                var result = Iterate(child, depth - 1, alpha, beta, !Player, initialScore);
+                var result = Iterate(child, depth - 1, alpha, beta, !Player);
                 //Debug.Log(depth + ": curr: " + result.score + ": beta: " + beta + ": Move Selected: " + selected.tile.tile.index);
                 //if (result.score == -1 || beta < result.score) { 
                 //    selected = child;
@@ -413,7 +418,7 @@ public class Node
         return terminalNode;
     }
 
-    public int GetTotalScore(int playerID, bool Player, int initialScore, int depth)
+    public int GetTotalScore(int playerID, bool Player, int depth)
     {
         int totalScore = 0;
 
