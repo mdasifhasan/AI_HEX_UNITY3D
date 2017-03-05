@@ -146,7 +146,7 @@ public class HexGridUtil
     }
 
     
-    public static int evaluate(Dictionary<string, Tile> grid, List<TileState> playerTiles, int playerID)
+    public static int evaluate(List<TileState> playerTiles, int playerID)
     {
         TimeRecorder.Instance.startTimer("evaluate");
         //Debug.Log("Evaluating for player: " + playerID);

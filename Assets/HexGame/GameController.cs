@@ -43,7 +43,7 @@ public class GameController : MonoBehaviour
 
     public void TestEvaluationFunction(int playerID)
     {
-        int score = HexGridUtil.evaluate(grid.grid, this.player_tiles[playerID], playerID);
+        int score = HexGridUtil.evaluate(this.player_tiles[playerID], playerID);
         //Debug.Log(playerID + ": Evaluation score: " + score );
     }
 

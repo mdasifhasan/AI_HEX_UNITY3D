@@ -32,20 +32,20 @@ public class AlphaBeta
     public void NextMove( Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState> callback)
     {
         testMoveNo++;
-        TimeRecorder.Instance.resetTimer("evaluate");
-        TimeRecorder.Instance.resetTimer("evaluate-prepareLayers");
-        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop");
-        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-1");
-        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-2");
-        TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-3");
-        TimeRecorder.Instance.resetTimer("Neighbours-1");
-        TimeRecorder.Instance.resetTimer("Neighbours-2");
-        TimeRecorder.Instance.resetTimer("node.GetTotalScore");
+        //TimeRecorder.Instance.resetTimer("evaluate");
+        //TimeRecorder.Instance.resetTimer("evaluate-prepareLayers");
+        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop");
+        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-1");
+        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-2");
+        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-3");
+        //TimeRecorder.Instance.resetTimer("Neighbours-1");
+        //TimeRecorder.Instance.resetTimer("Neighbours-2");
+        //TimeRecorder.Instance.resetTimer("node.GetTotalScore");
         startTime = getTime();
         //Debug.Log("Start time: " + startTime);
         time = 0;
         i = 0;
-        int initialScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
+        int initialScore = HexGridUtil.evaluate(playerMaxTiles, playerID);
         //Debug.Log(playerID + " initialScore: " + initialScore );
         Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, null);
         RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true, initialScore);
@@ -145,11 +145,11 @@ public class AlphaBeta
 
         if (depth == 0 || node.IsTerminal())
         {
-            TimeRecorder.Instance.startTimer("node.GetTotalScore");
+            //TimeRecorder.Instance.startTimer("node.GetTotalScore");
             int score = node.GetTotalScore(this.playerID, Player, initialScore, depth);
             node.score = score;
 
-            TimeRecorder.Instance.stopTimer("node.GetTotalScore");
+            //TimeRecorder.Instance.stopTimer("node.GetTotalScore");
             //Debug.Log("depth == 0 || node.IsTerminal(): " + (depth == 0) + ", " + node.IsTerminal() + ", depth: " + depth + " score: " + node.score);
             return new RetIterate(score, node);
         }
@@ -426,7 +426,7 @@ public class Node
 
         //totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
         //totalScore = evaluate(playerMaxTiles, playerID);
-        totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID) - HexGridUtil.evaluate(grid, playerMinTiles, 1 - playerID);
+        totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);
         //totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
         //Debug.Log("TotalScore: " + totalScore);
         return totalScore;
