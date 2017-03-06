@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -49,9 +50,44 @@ public class AstarData
     }
     public List<TileState> path = new List<TileState>();
 }
+public class TileSet
+{
+    public int high = int.MinValue;
+    public int low = int.MaxValue;
+    public int size
+    {
+        get
+        {
+            return set.Count;
+        }
+    }
+    public List<TileState> set = new List<TileState>();
+    public int chainLength
+    {
+        get
+        {
+            return high - low;
+        }
+    }
+
+    internal void unify(TileSet n)
+    {
+        set.AddRange(n.set);
+        if (n.high > high)
+            high = n.high;
+        else if (n.high < high)
+            n.high = high;
+
+        if (n.low < low)
+            low = n.low;
+        else if (n.low > low)
+            n.low = low;
+    }
+}
 
 
-public class TileState : MonoBehaviour {
+public class TileState : MonoBehaviour
+{
     public Color colorBlack = new Color(0, 0, 0, 1);
     public Color colorWhite = new Color(1, 1, 1, 1);
     public Color colorHighlight = new Color(1, 1, 0, 1);
@@ -60,16 +96,20 @@ public class TileState : MonoBehaviour {
     public Tile tile;
     public AstarData data = new AstarData();
 
+    public TileSet tileSet = null;
+
     // Use this for initialization
-    void Start () {
+    void Start()
+    {
         this.tile = GetComponent<Tile>();
         colorLine = GetComponent<LineRenderer>().material.color;
     }
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
 
     public void resetState()
     {
@@ -79,14 +119,62 @@ public class TileState : MonoBehaviour {
     public void setTileState(int state)
     {
         Renderer rend = GetComponent<Renderer>();
-        if(state == 0)
+        if (state == 0)
             rend.material.color = colorWhite;
         else if (state == 1)
             rend.material.color = colorBlack;
         else if (state == 2)
             GetComponent<LineRenderer>().material.color = colorHighlight;
-        if(state == 1 || state == 0)
+        if (state == 1 || state == 0)
             this.currentState = state;
+    }
+
+    public void updateTileSet()
+    {
+        if (this.tileSet == null)
+        {
+            int layer = HexGridUtil.getHexIndexForPlayer(this.currentState, this);
+            Debug.Log("tile layer: " + layer);
+            foreach (Tile t in this.tile.neighbours)
+            {
+                TileState n = t.tileState;
+                if (n.currentState == this.currentState)
+                {
+                    if (this.tileSet == null)
+                    {
+                        n.tileSet.set.Add(this);
+                        this.tileSet = n.tileSet;
+                        if (tileSet.high < layer)
+                            tileSet.high = layer;
+                        if (tileSet.low > layer)
+                            tileSet.low = layer;
+                    }
+                    else
+                    {
+                        // unify two tileSets
+                        if(tileSet.size > n.tileSet.size) {
+                            tileSet.unify(n.tileSet);
+                            n.tileSet = tileSet;
+                        }
+                        else {
+                            n.tileSet.unify(tileSet);
+                            this.tileSet = n.tileSet;
+                        }
+                    }
+                }
+            }
+            if (this.tileSet == null) // no neighbours is of same color
+            {
+                this.tileSet = new TileSet();
+                this.tileSet.set.Add(this);
+                this.tileSet.high = this.tileSet.low = layer;
+            }
+        }
+        else
+        {
+            Debug.LogError("IT Shouldn't be!");
+        }
+        Debug.Log(this.currentState + ": chainLength: " + tileSet.chainLength);
     }
 
     public void highlight()

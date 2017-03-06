@@ -137,7 +137,7 @@ public class HexGridUtil
         }
         return false;
     }
-    static int getHexIndexForPlayer(int playerID, TileState ts)
+    public static int getHexIndexForPlayer(int playerID, TileState ts)
     {
         if (playerID == 1)
             return ts.tile.index.x;
@@ -282,41 +282,4 @@ public class HexGridUtil
         TimeRecorder.Instance.stopTimer("evaluate-inner-while-loop-3");
     }
 
-    public static int evaluate_no_of_connected(Dictionary<string, Tile> grid, List<TileState> playerTiles, int playerID)
-    {
-        int totalScore = 0;
-        List<TileState> frontier = new List<TileState>(playerTiles);
-        List<TileState> visited = new List<TileState>();
-
-
-        int c = 0;
-        while (frontier.Count > 0)
-        {
-            c++;
-            if (c > 1000)
-            {
-                Debug.LogError("Checking bridge exceeding time limit");
-                break;
-            }
-            TileState ts = frontier[0];
-            frontier.RemoveAt(0);
-            visited.Add(ts);
-
-            List<Tile> n = HexGridUtil.Neighbours(grid, ts.tile);
-            foreach (Tile t in n)
-            {
-                TileState nts = t.GetComponent<TileState>();
-                if (nts.currentState == playerID)
-                {
-                    if (!visited.Contains(nts))
-                    {
-                        visited.Add(nts);
-                        totalScore++;
-                    }
-                }
-            }
-        }
-        return totalScore;
-
-    }
 }

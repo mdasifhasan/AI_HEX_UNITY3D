@@ -41,10 +41,10 @@ public class GameController : MonoBehaviour
         SceneManager.LoadScene(0);
     }
 
-    public void TestEvaluationFunction(int playerID)
+    public void TestEvaluationFunction()
     {
-        int score = HexGridUtil.evaluate(this.player_tiles[playerID], playerID);
-        //Debug.Log(playerID + ": Evaluation score: " + score );
+        Debug.Log(0 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[0], 0));
+        Debug.Log(1 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[1], 1));
     }
 
     public Tile[] testMoves;
@@ -87,11 +87,11 @@ public class GameController : MonoBehaviour
             Restart();
             return;
         }
+        ts.updateTileSet();
         availableTiles.Remove(ts);
         this.player_tiles[this.currentTurn].Add(ts);
 
-        TestEvaluationFunction(this.currentTurn);
-        TestEvaluationFunction(1 - this.currentTurn);
+        TestEvaluationFunction();
 
         this.currentTurn = (this.currentTurn + 1) % 2;
         // this is necessary to switch to next turn after each turn is finished
