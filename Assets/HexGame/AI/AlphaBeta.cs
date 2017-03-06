@@ -29,92 +29,100 @@ public class AlphaBeta
 
 
     public static int testMoveNo = 0;
-    public Node NextMove( Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState, int> callback)
+    public Node NextMove(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, System.Action<TileState, int> callback)
     {
-        testMoveNo++;
-        //TimeRecorder.Instance.resetTimer("evaluate");
-        //TimeRecorder.Instance.resetTimer("evaluate-prepareLayers");
-        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop");
-        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-1");
-        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-2");
-        //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-3");
-        //TimeRecorder.Instance.resetTimer("Neighbours-1");
-        //TimeRecorder.Instance.resetTimer("Neighbours-2");
-        //TimeRecorder.Instance.resetTimer("node.GetTotalScore");
-        startTime = getTime();
-        //Debug.Log("Start time: " + startTime);
-        time = 0;
-        i = 0;
-        //int initialScore = HexGridUtil.evaluate(playerMaxTiles, playerID);
-        //Debug.Log(playerID + " initialScore: " + initialScore);
-        //Debug.Log(playerID + " alphabeta, available tiles: " + availableTiles.Count);
-        Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, null);
-        RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true);
-        Node t = null;
-        int s = -99999;
-        if (MaxPlayer)
+        try
         {
-            foreach (var c in n.children)
-            {
-                if (s == -99999)
-                {
-                    s = c.score;
-                    t = c;
-                    //Debug.Log("1 Move Selected with score: " + s);
-                }
-                else
-                {
-                    if (s < c.score)
-                    {
 
+            testMoveNo++;
+            //TimeRecorder.Instance.resetTimer("evaluate");
+            //TimeRecorder.Instance.resetTimer("evaluate-prepareLayers");
+            //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop");
+            //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-1");
+            //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-2");
+            //TimeRecorder.Instance.resetTimer("evaluate-inner-while-loop-3");
+            //TimeRecorder.Instance.resetTimer("Neighbours-1");
+            //TimeRecorder.Instance.resetTimer("Neighbours-2");
+            TimeRecorder.Instance.resetTimer("node.GetTotalScore");
+            startTime = getTime();
+            //Debug.Log("Start time: " + startTime);
+            time = 0;
+            i = 0;
+            //int initialScore = HexGridUtil.evaluate(playerMaxTiles, playerID);
+            //Debug.Log(playerID + " initialScore: " + initialScore);
+            //Debug.Log(playerID + " alphabeta, available tiles: " + availableTiles.Count);
+            Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, null);
+            RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true);
+            Node t = null;
+            int s = -99999;
+            if (MaxPlayer)
+            {
+                foreach (var c in n.children)
+                {
+                    if (s == -99999)
+                    {
                         s = c.score;
                         t = c;
-                        //Debug.Log("2 Move Selected with score: " + s);
+                        //Debug.Log("1 Move Selected with score: " + s);
+                    }
+                    else
+                    {
+                        if (s < c.score)
+                        {
+
+                            s = c.score;
+                            t = c;
+                            //Debug.Log("2 Move Selected with score: " + s);
+                        }
                     }
                 }
             }
-        }
-        else
-        {
-            foreach (var c in n.children)
+            else
             {
-                if (s == -99999)
+                foreach (var c in n.children)
                 {
-                    s = c.score;
-                    t = c;
-                    //Debug.Log(s + " Move Selected: " + t.tile.tile.index);
-                }
-                else
-                {
-                    if (s > c.score)
+                    if (s == -99999)
                     {
                         s = c.score;
                         t = c;
                         //Debug.Log(s + " Move Selected: " + t.tile.tile.index);
                     }
+                    else
+                    {
+                        if (s > c.score)
+                        {
+                            s = c.score;
+                            t = c;
+                            //Debug.Log(s + " Move Selected: " + t.tile.tile.index);
+                        }
+                    }
                 }
             }
+            if (t != null)
+                Debug.Log(this.playerID + " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
+            else
+                Debug.Log(i + " iterations" + " No Move Found!!!");
+            //Debug.Log("MaxDepth: " + maxDepth);
+            Debug.Log("Time taken: " + (getTime() - startTime));
+            //TimeRecorder.Instance.printStats();
+            TimeRecorder.Instance.printStat("node.GetTotalScore");
+            if (callback != null)
+                callback(t.tile, t.score);
+            else
+                return t;
         }
-        //if (t != null)
-        //    Debug.Log(this.playerID+ " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
-        //else
-        //    Debug.Log(i + " iterations" + " No Move Found!!!");
-        //Debug.Log("MaxDepth: " + maxDepth);
-        Debug.Log("Time taken: " + (getTime() - startTime));
-        //TimeRecorder.Instance.printStats();
-
-        if (callback != null)
-            callback(t.tile, t.score);
-        else
-            return t;
-        return t;
+        catch (Exception e)
+        {
+            Debug.LogException(e);
+        }
+        return null;
         //return t.tile;
     }
 
     public long getTime()
     {
         var dateTimeNow = DateTime.Now;
-        return ((dateTimeNow.Hour * 3600000) + (dateTimeNow.Minute * 60000) + (dateTimeNow.Second * 1000) + dateTimeNow.Millisecond)/1000;
+        return ((dateTimeNow.Hour * 3600000) + (dateTimeNow.Minute * 60000) + (dateTimeNow.Second * 1000) + dateTimeNow.Millisecond) / 1000;
         //return DateTime.Now..Ticks / TimeSpan.TicksPerSecond / 1000;
     }
 
@@ -150,11 +158,11 @@ public class AlphaBeta
 
         if (depth == 0 || node.IsTerminal())
         {
-            //TimeRecorder.Instance.startTimer("node.GetTotalScore");
+            TimeRecorder.Instance.startTimer("node.GetTotalScore");
             int score = node.GetTotalScore(this.playerID, Player, depth);
             node.score = score;
 
-            //TimeRecorder.Instance.stopTimer("node.GetTotalScore");
+            TimeRecorder.Instance.stopTimer("node.GetTotalScore");
             //Debug.Log("depth == 0 || node.IsTerminal(): " + (depth == 0) + ", " + node.IsTerminal() + ", depth: " + depth + " score: " + node.score);
             return new RetIterate(score, node);
         }
@@ -168,10 +176,11 @@ public class AlphaBeta
             Node selected = null;
             foreach (Node child in node.Children(this.playerID, depthBudget - depth, this.randomMoveInLevels))
             {
-                child.tileSets = new Dictionary<TileState, TileSet>(node.tileSets);
                 child.tile.currentState = this.playerID;
                 child.playerMaxTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
+                //child.tileSets = new Dictionary<TileState, TileSet>(node.tileSets);
+                //child.tile.updateTileSet(child.tileSets);
                 var result = Iterate(child, depth - 1, alpha, beta, !Player);
                 int a = alpha;
                 alpha = Math.Max(alpha, result.score);
@@ -199,6 +208,8 @@ public class AlphaBeta
                 child.tile.currentState = 1 - this.playerID;
                 child.playerMinTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
+                //child.tileSets = new Dictionary<TileState, TileSet>(node.tileSets);
+                //child.tile.updateTileSet(child.tileSets);
                 var result = Iterate(child, depth - 1, alpha, beta, !Player);
                 int b = beta;
                 beta = Math.Min(beta, result.score);
@@ -225,7 +236,6 @@ public class Node
     public TileState tile;
     public Dictionary<string, Tile> grid;
     public List<TileState> playerMaxTiles, playerMinTiles, availableTiles;
-    public Dictionary<TileState, TileSet> tileSets = new Dictionary<TileState, TileSet>(); 
     int winner = -1;
     public List<Node> children;
     public string note = "NONE";
@@ -379,9 +389,47 @@ public class Node
                 return -1000 * (depth + 1);
 
 
+        foreach(var t in playerMaxTiles)
+        {
+            if (t.tileSet == null)
+                t.tileSet = new TileSet(t);
+            else
+                t.tileSet.InitTileSet(t);
+        }
+        int maxChainLength = 0;
+        foreach (var t in playerMaxTiles)
+        {
+            t.updateTileSet();
+            if(t.tileSet.GetRoot().chainLength > maxChainLength)
+            {
+                maxChainLength = t.tileSet.chainLength;
+            }
+        }
+        foreach (var t in playerMinTiles)
+        {
+            if (t.tileSet == null)
+                t.tileSet = new TileSet(t);
+            else
+                t.tileSet.InitTileSet(t);
+        }
+        int minChainLength = 0;
+        foreach (var t in playerMinTiles)
+        {
+            t.updateTileSet();
+            if (t.tileSet.GetRoot().chainLength > minChainLength)
+            {
+                minChainLength = t.tileSet.chainLength;
+            }
+        }
+        totalScore = maxChainLength - minChainLength;
+
+        //totalScore = playerScores[playerID] - playerScores[1 - playerID];
+        //totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);
+
+
         //totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
         //totalScore = evaluate(playerMaxTiles, playerID);
-        totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);
+        //totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);
         //totalScore = HexGridUtil.evaluate(grid, playerMaxTiles, playerID);
         //Debug.Log("TotalScore: " + totalScore);
         return totalScore;

@@ -52,8 +52,10 @@ public class AstarData
 }
 public class TileSet
 {
+    public TileSet root = null;
     public int high = int.MinValue;
     public int low = int.MaxValue;
+    public int state = -1;
     public int size
     {
         get
@@ -73,6 +75,7 @@ public class TileSet
     internal void unify(TileSet n)
     {
         set.AddRange(n.set);
+        n.root = this.GetRoot();
         if (n.high > high)
             high = n.high;
         else if (n.high < high)
@@ -83,6 +86,40 @@ public class TileSet
         else if (n.low > low)
             n.low = low;
     }
+
+    public TileSet()
+    {
+
+    }
+    public TileSet(TileState ts)
+    {
+        set.Add(ts);
+        high = low = HexGridUtil.getHexIndexForPlayer(ts.currentState, ts);
+        state = ts.currentState;
+    }
+    public void InitTileSet(TileState ts)
+    {
+        root = null;
+        set.Clear();
+        set.Add(ts);
+        high = low = HexGridUtil.getHexIndexForPlayer(ts.currentState, ts);
+        state = ts.currentState;
+    }
+
+    public TileSet GetRoot()
+    {
+        if (this.root == null)
+            return this;
+        else
+        {
+            var p = this.root.GetRoot();
+            if (p != this)
+                this.root = p;
+            //this.root = p;
+            return p;
+        }
+    }
+
 }
 
 
@@ -129,57 +166,55 @@ public class TileState : MonoBehaviour
             this.currentState = state;
     }
 
-    public void updateTileSet(Dictionary<TileState, TileSet> tileSets)
+    public void updateTileSet()
     {
-        this.tileSet = tileSets[this];
-        if (this.tileSet == null)
+        int layer = HexGridUtil.getHexIndexForPlayer(this.currentState, this);
+        //Debug.Log("tile layer: " + layer);
+        foreach (Tile t in this.tile.neighbours)
         {
-            int layer = HexGridUtil.getHexIndexForPlayer(this.currentState, this);
-            Debug.Log("tile layer: " + layer);
-            foreach (Tile t in this.tile.neighbours)
+            TileState n = t.tileState;
+            if (n.currentState == this.currentState)
             {
-                TileState n = t.tileState;
-                if (n.currentState == this.currentState)
+                if (this.tileSet == null)
                 {
-                    n.tileSet = tileSets[n];
-                    if (this.tileSet == null)
+                    n.tileSet.set.Add(this);
+                    this.tileSet = n.tileSet;
+                    if (tileSet.high < layer)
+                        tileSet.high = layer;
+                    if (tileSet.low > layer)
+                        tileSet.low = layer;
+                }
+                else
+                {
+                    var r = tileSet.GetRoot();
+                    var nr = n.tileSet.GetRoot();
+                    if (r == nr)
                     {
-                        n.tileSet.set.Add(this);
-                        this.tileSet = n.tileSet;
-                        if (tileSet.high < layer)
-                            tileSet.high = layer;
-                        if (tileSet.low > layer)
-                            tileSet.low = layer;
+
                     }
                     else
                     {
                         // unify two tileSets
-                        if(tileSet.size > n.tileSet.size) {
-                            tileSet.unify(n.tileSet);
-                            n.tileSet = tileSet;
+                        if (r.size > nr.size)
+                        {
+                            r.unify(nr);
                         }
-                        else {
-                            n.tileSet.unify(tileSet);
-                            this.tileSet = n.tileSet;
+                        else
+                        {
+                            nr.unify(r);
                         }
                     }
-                    tileSets[this] = this.tileSet;
-                    tileSets[n] = n.tileSet;
                 }
             }
-            if (this.tileSet == null) // no neighbours is of same color
-            {
-                this.tileSet = new TileSet();
-                this.tileSet.set.Add(this);
-                this.tileSet.high = this.tileSet.low = layer;
-                tileSets[this] = this.tileSet;
-            }
         }
-        else
+        if (this.tileSet == null) // no neighbours is of same color
         {
-            Debug.LogError("IT Shouldn't be!");
+            this.tileSet = new TileSet();
+            this.tileSet.set.Add(this);
+            this.tileSet.high = this.tileSet.low = layer;
+            this.tileSet.state = this.currentState;
         }
-        Debug.Log(this.currentState + ": chainLength: " + tileSet.chainLength);
+        //Debug.Log(this.currentState + ": chainLength: " + tileSet.chainLength);
     }
 
     public void highlight()
