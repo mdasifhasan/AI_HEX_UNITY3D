@@ -42,8 +42,7 @@ public class GameController : MonoBehaviour
 
     public void TestEvaluationFunction()
     {
-        Debug.Log(0 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[0], 0));
-        Debug.Log(1 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[1], 1));
+        Debug.Log(HexGridUtil.evaluate(this.player_tiles[0], 0) + " vs " + HexGridUtil.evaluate(this.player_tiles[1], 1));
     }
 
     public Tile[] testMoves;

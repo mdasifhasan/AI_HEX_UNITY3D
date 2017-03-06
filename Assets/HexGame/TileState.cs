@@ -56,14 +56,8 @@ public class TileSet
     public int high = int.MinValue;
     public int low = int.MaxValue;
     public int state = -1;
-    public int size
-    {
-        get
-        {
-            return set.Count;
-        }
-    }
-    public List<TileState> set = new List<TileState>();
+    public int size = 0;
+    //public List<TileState> set = new List<TileState>();
     public int chainLength
     {
         get
@@ -74,18 +68,20 @@ public class TileSet
 
     internal void unify(TileSet n)
     {
-        set.AddRange(n.set);
-        n.root = this.GetRoot();
+        size += n.size;
+        //set.AddRange(n.set);
+        n.root = this;
         if (n.high > high)
             high = n.high;
-        else if (n.high < high)
-            n.high = high;
+        //else if (n.high < high)
+        //    n.high = high;
 
         if (n.low < low)
             low = n.low;
-        else if (n.low > low)
-            n.low = low;
+        //else if (n.low > low)
+        //    n.low = low;
     }
+
 
     public TileSet()
     {
@@ -93,15 +89,16 @@ public class TileSet
     }
     public TileSet(TileState ts)
     {
-        set.Add(ts);
+        size = 1;
         high = low = HexGridUtil.getHexIndexForPlayer(ts.currentState, ts);
         state = ts.currentState;
     }
     public void InitTileSet(TileState ts)
     {
         root = null;
-        set.Clear();
-        set.Add(ts);
+        size = 1;
+        //set.Clear();
+        //set.Add(ts);
         high = low = HexGridUtil.getHexIndexForPlayer(ts.currentState, ts);
         state = ts.currentState;
     }
@@ -115,7 +112,6 @@ public class TileSet
             var p = this.root.GetRoot();
             if (p != this)
                 this.root = p;
-            //this.root = p;
             return p;
         }
     }
@@ -166,6 +162,14 @@ public class TileState : MonoBehaviour
             this.currentState = state;
     }
 
+    public void initTileSet()
+    {
+        if (tileSet == null)
+            tileSet = new TileSet(this);
+        else
+            tileSet.InitTileSet(this);
+    }
+
     public void updateTileSet()
     {
         int layer = HexGridUtil.getHexIndexForPlayer(this.currentState, this);
@@ -179,7 +183,8 @@ public class TileState : MonoBehaviour
             {
                 if (this.tileSet == null)
                 {
-                    n.tileSet.set.Add(this);
+                    n.tileSet.size++;
+                    //n.tileSet.set.Add(this);
                     this.tileSet = n.tileSet;
                     if (tileSet.high < layer)
                         tileSet.high = layer;
@@ -192,7 +197,7 @@ public class TileState : MonoBehaviour
                     var nr = n.tileSet.GetRoot();
                     if (r == nr)
                     {
-
+                        // nothing need be done as they are currently in the same set
                     }
                     else
                     {
@@ -211,10 +216,7 @@ public class TileState : MonoBehaviour
         }
         if (this.tileSet == null) // no neighbours is of same color
         {
-            this.tileSet = new TileSet();
-            this.tileSet.set.Add(this);
-            this.tileSet.high = this.tileSet.low = layer;
-            this.tileSet.state = this.currentState;
+            initTileSet();
         }
         //Debug.Log(this.currentState + ": chainLength: " + tileSet.chainLength);
     }

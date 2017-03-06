@@ -163,10 +163,7 @@ public class HexGridUtil
     {
         foreach (var t in playerTiles)
         {
-            if (t.tileSet == null)
-                t.tileSet = new TileSet(t);
-            else
-                t.tileSet.InitTileSet(t);
+            t.initTileSet();
         }
         int maxChainLength = 0;
         foreach (var t in playerTiles)
@@ -174,7 +171,7 @@ public class HexGridUtil
             t.updateTileSet();
             if (t.tileSet.GetRoot().chainLength > maxChainLength)
             {
-                maxChainLength = t.tileSet.chainLength;
+                maxChainLength = t.tileSet.GetRoot().chainLength;
             }
         }
         return maxChainLength;
