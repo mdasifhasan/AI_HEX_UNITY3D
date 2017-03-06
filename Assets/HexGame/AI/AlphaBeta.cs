@@ -159,27 +159,6 @@ public class AlphaBeta
             return new RetIterate(score, node);
         }
 
-        //if (depth == selectiveSearchDepth && !Player)
-        //    selectiveSearchDepth++;
-        //if (depth == selectiveSearchDepth)
-        //{
-        //    if (node.score == -1)
-        //        node.score = node.GetTotalScore(this.playerID, Player, initialScore);
-        //    if (node.score > bestScoreSoFar)
-        //    {
-        //        bestScoreSoFar = node.score;
-        //    }
-        //}
-        //if (depth == selectiveSearchDepth+2)
-        //{
-        //    node.score = node.GetTotalScore(this.playerID, Player, initialScore);
-        //    if (node.score <= bestScoreSoFar)
-        //    {
-        //        return new RetIterate(node.score, node);
-        //    }
-        //}
-
-
 
         int m = 0;
         List<TileState> expanded = new List<TileState>();
@@ -189,25 +168,10 @@ public class AlphaBeta
             Node selected = null;
             foreach (Node child in node.Children(this.playerID, depthBudget - depth, this.randomMoveInLevels))
             {
-                //Debug.Log("child " + child.tile.tile.index);
-                //if (time > budget)
-                //{
-                //    Debug.Log("MAX Breaking for out of budget: " + depth + " selected: " + selected);
-                //    //break;
-                //    if (selected == null)
-                //        return new RetIterate(9999, child);
-                //    else
-                //        break;
-                //}
                 child.tile.currentState = this.playerID;
                 child.playerMaxTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
                 var result = Iterate(child, depth - 1, alpha, beta, !Player);
-                //if (result.score == -1 || alpha < result.score)
-                //{                    
-                //    selected = child;
-                //    Debug.Log("SELECTED" + depth + ": curr: " + result.score + ": beta: " + beta + ": Move Selected: " + selected.tile.tile.index);
-                //}
                 int a = alpha;
                 alpha = Math.Max(alpha, result.score);
                 //Debug.Log("Alpha updated from: " + a + " to: " + alpha + " at depth: " + depth);
@@ -229,28 +193,12 @@ public class AlphaBeta
             //Debug.Log("Min Player");
             Node selected = null;
             foreach (Node child in node.Children(1 - this.playerID, depthBudget - depth, this.randomMoveInLevels))
-            //Node child;
-            //while ((child = node.getNextChildNode(1 - this.playerID)) != null)
             {
-                //if (time > budget)
-                //{
-                //    Debug.Log("MIN Breaking for out of budget: " + depth + " selected: " + selected);
-                //    //break;
-                //    if (selected == null)
-                //        return new RetIterate(-9999, child);
-                //    else
-                //        break;
-                //}
                 //Debug.Log("child " + child.tile.tile.index);
                 child.tile.currentState = 1 - this.playerID;
                 child.playerMinTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
                 var result = Iterate(child, depth - 1, alpha, beta, !Player);
-                //Debug.Log(depth + ": curr: " + result.score + ": beta: " + beta + ": Move Selected: " + selected.tile.tile.index);
-                //if (result.score == -1 || beta < result.score) { 
-                //    selected = child;
-                //    Debug.Log("SELECTED " + depth + ": curr: " + result.score + ": beta: " + beta + ": Move Selected: " + selected.tile.tile.index);
-                //}
                 int b = beta;
                 beta = Math.Min(beta, result.score);
                 //Debug.Log("Beta updated from: " + b + " to: " + beta + " at depth: " + depth);
