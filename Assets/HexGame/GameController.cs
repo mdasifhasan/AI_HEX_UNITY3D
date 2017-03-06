@@ -88,6 +88,7 @@ public class GameController : MonoBehaviour
             return;
         }
         //ts.updateTileSet();
+        //Debug.LogError("ts chain length: " + ts.tileSet.GetRoot().chainLength);
         TestEvaluationFunction();
         this.currentTurn = (this.currentTurn + 1) % 2;
         // this is necessary to switch to next turn after each turn is finished

@@ -181,7 +181,7 @@ public class MCTS
         }
         int sizeMoves = possibleMoves.Count;
         //var board = new Dictionary<string, Tile>(grid);
-        for (int i = 0; i < 1; i++)
+        for (int i = 0; i < 5; i++)
         {
             //possibleMoves = new List<TileState>(v.possibleMoves);
             //Debug.Log(i + " inner loop, BeginSizeMoves: " + sizeMoves + " nowSizeMoves: " + possibleMoves.Count);
@@ -196,99 +196,108 @@ public class MCTS
             }
             foreach (TileState ts in v.possibleMoves)
             {
+                ts.currentState = -1;
                 ts.initTileSet();
             }
-            //int maxChainLength = 0;
-            //int minChainLength = 0;
             foreach (var t in v.myTiles)
             {
                 t.updateTileSet();
-                //if (t.tileSet.GetRoot().chainLength > maxChainLength)
-                //{
-                //    maxChainLength = t.tileSet.chainLength;
-                //}
             }
             foreach (var t in v.opponentTiles)
             {
                 t.updateTileSet();
-                //if (t.tileSet.GetRoot().chainLength > minChainLength)
-                //{
-                //    minChainLength = t.tileSet.chainLength;
-                //}
             }
             int currentTurn = v.myPlayerID;
             int c = 0;
             while (possibleMoves.Count > 0)
             {
-                if(++c > 100)
+                if (++c > 100)
                 {
                     Debug.LogError("Simulation exceeded budget");
                     return 0;
                 }
                 var move = MovesBank.addRandomMove(possibleMoves);
-                
-                if (move == null) {
+
+                if (move == null)
+                {
                     Debug.Log("Weird! No moves available whereas game is not finised !?");
                     break;
                 }
-                
+
                 possibleMoves.Remove(move);
                 if (currentTurn == v.myPlayerID)
                 {
                     v.myTiles.Add(move);
                     myTriedMoves.Add(move);
                 }
-                else {
+                else
+                {
                     v.opponentTiles.Add(move);
                     oppTriedMoves.Add(move);
                 }
 
                 //Debug.Log(i + " PossibleMoves size: " + possibleMoves.Count + " myTriedMoves size: " + myTriedMoves.Count + " oppTriedMoves size: " + oppTriedMoves.Count);
                 move.currentState = currentTurn;
-                #region check winner
                 move.updateTileSet();
-                int cl = move.tileSet.GetRoot().chainLength;
-                //Debug.Log("chainlength: " + cl);
+                //int cl = move.tileSet.GetRoot().chainLength;
+
+                int cl = 0;
                 int winner = -1;
+                int maxChainLength = 0;
                 if (currentTurn == v.myPlayerID)
                 {
-                    //if (cl > maxChainLength)
-                    //{
-                    //    maxChainLength = cl;
-                        if (cl >= 7)
-                            winner = v.myPlayerID;
-                    //}
+                    foreach (var t in v.myTiles)
+                    {
+                        if (t.tileSet.GetRoot().chainLength > maxChainLength)
+                        {
+                            maxChainLength = t.tileSet.GetRoot().chainLength;
+                        }
+                    }
+                    cl = maxChainLength;
+                    if (cl >= 7)
+                        winner = v.myPlayerID;
                 }
                 else
                 {
-                    //if (cl > minChainLength)
-                    //{
-                        //minChainLength = cl;
-                        if (cl >= 7)
-                            winner = v.myPlayerID;
-                    //}
-                }
-                #endregion
-                //int winner = HexGridUtil.CheckGameOver(grid);
-                //winner = -1;
-
-
-
-
-                if (possibleMoves.Count == 0)
-                {
-                    int chainLength = HexGridUtil.evaluate(v.myTiles, v.myPlayerID);
-                    if (chainLength >= 7)
-                        winner = v.myPlayerID;
-                    else
+                    maxChainLength = 0;
+                    foreach (var t in v.opponentTiles)
                     {
-                        chainLength = HexGridUtil.evaluate(v.opponentTiles, 1 - v.myPlayerID);
-                        if (chainLength >= 7)
-                            winner = 1 - v.myPlayerID;
+                        if (t.tileSet.GetRoot().chainLength > maxChainLength)
+                        {
+                            maxChainLength = t.tileSet.GetRoot().chainLength;
+                        }
                     }
-                    Debug.LogError("PossibleMoves got to zero, isTerminal? winner: " + winner + " chainlength: " + cl + " chainlength2: " + chainLength);
-                    Debug.Log("Game: " + i + ", opponentTiles: " + v.opponentTiles.Count + ", myTiles: " + v.myTiles.Count + ", BeginSizeMoves: " + sizeMoves + " PossibleMoves size: " + possibleMoves.Count + " myTriedMoves size: " + myTriedMoves.Count + " oppTriedMoves size: " + oppTriedMoves.Count);
+                    cl = maxChainLength;
+                    if (cl >= 7)
+                        winner = 1 - v.myPlayerID;
                 }
+
+                //if (cl >= 7)
+                //{
+                //    if (currentTurn == v.myPlayerID)
+                //        winner = v.myPlayerID;
+                //    else
+                //        winner = 1 - v.myPlayerID;
+                //}
+                //if (possibleMoves.Count == 0)
+                //{
+                //    int chainLength = 0;
+                //    if (currentTurn == v.myPlayerID)
+                //    {
+                //        chainLength = HexGridUtil.evaluate(v.myTiles, v.myPlayerID);
+                //        if (chainLength >= 7)
+                //            winner = v.myPlayerID;
+                //    }
+                //    else
+                //    {
+                //        chainLength = HexGridUtil.evaluate(v.opponentTiles, 1 - v.myPlayerID);
+                //        if (chainLength >= 7)
+                //            winner = 1 - v.myPlayerID;
+                //    }
+
+                //    Debug.LogError("PossibleMoves got to zero, isTerminal? winner: " + winner + " chainlength: " + chainLength + " cl: " + cl + " move.root" + (move.tileSet == move.tileSet.GetRoot()));
+                //    Debug.Log("Game: " + i + ", opponentTiles: " + v.opponentTiles.Count + ", myTiles: " + v.myTiles.Count + ", BeginSizeMoves: " + sizeMoves + " PossibleMoves size: " + possibleMoves.Count + " myTriedMoves size: " + myTriedMoves.Count + " oppTriedMoves size: " + oppTriedMoves.Count);
+                //}
 
                 currentTurn = 1 - currentTurn;
                 //Debug.Log("calc winner: " + winner);
@@ -323,7 +332,7 @@ public class MCTS
         }
         if (totalPlay == 0)
             return 0;
-        return win[v.myPlayerID] / (double)totalPlay ;
+        return win[v.myPlayerID] / (double)totalPlay;
         //return win[v.myPlayerID] / (double)totalPlay * 10 - win[1 - v.myPlayerID] / (double)totalPlay * 10;
     }
     private double DefaultPolicyEval(MCTS_Node v)

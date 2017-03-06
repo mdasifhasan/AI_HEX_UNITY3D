@@ -92,6 +92,7 @@ public class TileSet
         size = 1;
         high = low = HexGridUtil.getHexIndexForPlayer(ts.currentState, ts);
         state = ts.currentState;
+        root = null;
     }
     public void InitTileSet(TileState ts)
     {
