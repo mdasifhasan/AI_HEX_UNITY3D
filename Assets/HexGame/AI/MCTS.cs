@@ -135,7 +135,7 @@ public class MCTS
             //    Debug.Log(m + " - " + counts[m]);
             //}
 
-            Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta/ (double) bestChild.visits) + " maxDepth: " + maxDepth);
+            Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta / (double)bestChild.visits) + " maxDepth: " + maxDepth);
             callback(ts);
         }
         catch (Exception e)
@@ -161,6 +161,7 @@ public class MCTS
     {
         // have to handle win weight according to v.depth possibly
         if (v.winner != -1)
+        {
             if (v.winner == v.myPlayerID)
             {
                 //Debug.Log(v.myPlayerID + " Me Winner depth: " + v.depth);
@@ -171,7 +172,34 @@ public class MCTS
                 //Debug.Log(v.myPlayerID + " Opponent Winner depth: " + v.depth);
                 return -1000;
             }
-        return HexGridUtil.evaluate(v.myTiles, v.myPlayerID) - HexGridUtil.evaluate(v.opponentTiles, 1 - v.myPlayerID); ;
+        }
+
+        int score = 0;
+        List<TileState> changed = new List<TileState>();
+
+        foreach (TileState ts in v.myTiles)
+        {
+            if (ts.currentState == -1)
+            {
+                ts.currentState = v.myPlayerID;
+                changed.Add(ts);
+            }
+        }
+        foreach (TileState ts in v.opponentTiles)
+        {
+            if (ts.currentState == -1)
+            {
+                ts.currentState = 1 - v.myPlayerID;
+                changed.Add(ts);
+            }
+        }
+        score = HexGridUtil.evaluate(v.myTiles, v.myPlayerID) - HexGridUtil.evaluate(v.opponentTiles, 1 - v.myPlayerID);
+        foreach (TileState ts in changed)
+        {
+            ts.currentState = -1;
+        }
+
+        return score;
 
         //TimeRecorder.Instance.startTimer("MCTS_AlphaBeta");
         ////Debug.Log("calling alpha beta");
@@ -228,7 +256,7 @@ public class MCTS
                 UCB1 = ((double)child.delta / (double)child.visits) + C * Math.Sqrt((2.0 * Math.Log((double)current.visits)) / (double)child.visits);
             else if (mode == 1)
                 UCB1 = ((double)child.delta / (double)child.visits) * 2 + child.visits;
-            else 
+            else
                 UCB1 = child.visits;
 
             if (UCB1 > best)

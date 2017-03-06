@@ -98,14 +98,17 @@ public class AlphaBeta
                     }
                 }
             }
-            if (t != null)
-                Debug.Log(this.playerID + " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
-            else
-                Debug.Log(i + " iterations" + " No Move Found!!!");
+
+            //if (t != null)
+            //    Debug.Log(this.playerID + " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
+            //else
+            //    Debug.Log(i + " iterations" + " No Move Found!!!");
+
+
             //Debug.Log("MaxDepth: " + maxDepth);
-            Debug.Log("Time taken: " + (getTime() - startTime));
+            //Debug.Log("Time taken: " + (getTime() - startTime));
             //TimeRecorder.Instance.printStats();
-            TimeRecorder.Instance.printStat("node.GetTotalScore");
+            //TimeRecorder.Instance.printStat("node.GetTotalScore");
             if (callback != null)
                 callback(t.tile, t.score);
             else
@@ -388,40 +391,7 @@ public class Node
             else
                 return -1000 * (depth + 1);
 
-
-        foreach(var t in playerMaxTiles)
-        {
-            if (t.tileSet == null)
-                t.tileSet = new TileSet(t);
-            else
-                t.tileSet.InitTileSet(t);
-        }
-        int maxChainLength = 0;
-        foreach (var t in playerMaxTiles)
-        {
-            t.updateTileSet();
-            if(t.tileSet.GetRoot().chainLength > maxChainLength)
-            {
-                maxChainLength = t.tileSet.chainLength;
-            }
-        }
-        foreach (var t in playerMinTiles)
-        {
-            if (t.tileSet == null)
-                t.tileSet = new TileSet(t);
-            else
-                t.tileSet.InitTileSet(t);
-        }
-        int minChainLength = 0;
-        foreach (var t in playerMinTiles)
-        {
-            t.updateTileSet();
-            if (t.tileSet.GetRoot().chainLength > minChainLength)
-            {
-                minChainLength = t.tileSet.chainLength;
-            }
-        }
-        totalScore = maxChainLength - minChainLength;
+        totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);
 
         //totalScore = playerScores[playerID] - playerScores[1 - playerID];
         //totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);

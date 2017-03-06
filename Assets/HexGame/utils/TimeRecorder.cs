@@ -8,7 +8,7 @@ public class TimeRecorder
     public static TimeRecorder Instance = new TimeRecorder();
     Dictionary<string, double> times = new Dictionary<string, double>();
     Dictionary<string, double> running = new Dictionary<string, double>();
-    bool disabled = false;
+    bool disabled = true;
     public double getTime()
     {
         var dateTimeNow = DateTime.Now;
@@ -54,6 +54,8 @@ public class TimeRecorder
 
     public void printStats()
     {
+        if (disabled)
+            return;
         foreach (string k in times.Keys)
         {
             Debug.Log(k + " - " + times[k]);
@@ -61,6 +63,8 @@ public class TimeRecorder
     }
     public void printStat(string key)
     {
+        if (disabled)
+            return;
         Debug.Log(key + " - " + times[key]);
     }
 }

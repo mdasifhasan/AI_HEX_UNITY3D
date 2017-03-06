@@ -144,9 +144,28 @@ public class HexGridUtil
         else
             return ts.tile.index.y;
     }
-
-    
     public static int evaluate(List<TileState> playerTiles, int playerID)
+    {
+        foreach (var t in playerTiles)
+        {
+            if (t.tileSet == null)
+                t.tileSet = new TileSet(t);
+            else
+                t.tileSet.InitTileSet(t);
+        }
+        int maxChainLength = 0;
+        foreach (var t in playerTiles)
+        {
+            t.updateTileSet();
+            if (t.tileSet.GetRoot().chainLength > maxChainLength)
+            {
+                maxChainLength = t.tileSet.chainLength;
+            }
+        }
+        return maxChainLength;
+    }
+
+    public static int evaluateOLD(List<TileState> playerTiles, int playerID)
     {
         TimeRecorder.Instance.startTimer("evaluate");
         //Debug.Log("Evaluating for player: " + playerID);
@@ -162,7 +181,7 @@ public class HexGridUtil
         List<TileState> maxTile = null;
         TimeRecorder.Instance.startTimer("evaluate-prepareLayers");
         foreach (TileState t in frontier)
-        { 
+        {
             t.data.isExpanded = false;
             int currentLevel = getHexIndexForPlayer(playerID, t);
             if (lowestLayerID == -1 || lowestLayerID > currentLevel)
@@ -191,7 +210,7 @@ public class HexGridUtil
             }
 
             TimeRecorder.Instance.startTimer("evaluate-inner-while-loop");
-            
+
             int curLayer = i;
             while (frontier.Count > 0)
             {
@@ -217,7 +236,7 @@ public class HexGridUtil
                 // for each of the child
                 foreach (Tile t in n)
                 {
-                  
+
                     //TileState nts = t.GetComponent<TileState>();
                     TileState nts = t.tileState;
 
@@ -229,7 +248,7 @@ public class HexGridUtil
                     //Debug.Log("parentLayer: " + parentLayer + " childLayer: " + childLayer);
                     if (childLayer > parentLayer)
                     {
-                        if (!frontier.Contains(nts) && !nts.data.isExpanded )
+                        if (!frontier.Contains(nts) && !nts.data.isExpanded)
                         {
                             nts.data.set(7 - childLayer, childLayer - i, (childLayer - i), ts.data.horizontalNeighbours);
                             addToFrontier(frontier, nts);
