@@ -426,6 +426,8 @@ public class Node
         //totalScore = playerScores[playerID] - playerScores[1 - playerID];
         //totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);
 
+        //if (totalScore != totalScore1)
+        //    Debug.LogError("Score Mismatch!!");
 
         //totalScore = evaluate(playerMaxTiles, playerID) - evaluate(playerMinTiles, 1 - playerID);
         //totalScore = evaluate(playerMaxTiles, playerID);
