@@ -4,7 +4,22 @@ using UnityEngine;
 
 public class HexGridUtil
 {
-    public static int CheckGameOver(Dictionary<string, Tile> grid)
+
+    public static int CheckGameOver(int playerID, List<TileState> myTiles, List<TileState> opponentTiles)
+    {
+        int winner = -1;
+        int chainLength = HexGridUtil.evaluate(myTiles, playerID);
+        if (chainLength >= 7)
+            winner = playerID;
+        else
+        {
+            chainLength = HexGridUtil.evaluate(opponentTiles, 1 - playerID);
+            if (chainLength >= 7)
+                winner = 1 - playerID;
+        }
+        return winner;
+    }
+    public static int CheckGameOver_OLD(Dictionary<string, Tile> grid)
     {
         //Debug.Log("CheckGameOver()");
         var lineStart = FractionalHex.HexLinedraw(new Hex(0, 0, 0), new Hex(7, 0, -7));

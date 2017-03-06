@@ -51,7 +51,7 @@ public class AlphaBeta
             //int initialScore = HexGridUtil.evaluate(playerMaxTiles, playerID);
             //Debug.Log(playerID + " initialScore: " + initialScore);
             //Debug.Log(playerID + " alphabeta, available tiles: " + availableTiles.Count);
-            Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, null);
+            Node n = new Node(playerID, grid, playerMaxTiles, playerMinTiles, availableTiles, null);
             RetIterate selected = Iterate(n, depthBudget, -9999, 9999, true);
             Node t = null;
             int s = -99999;
@@ -99,14 +99,14 @@ public class AlphaBeta
                 }
             }
 
-            //if (t != null)
-            //    Debug.Log(this.playerID + " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
-            //else
-            //    Debug.Log(i + " iterations" + " No Move Found!!!");
+            Debug.Log("Time taken: " + (getTime() - startTime));
+            if (t != null)
+                Debug.Log(this.playerID + " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
+            else
+                Debug.Log(i + " iterations" + " No Move Found!!!");
 
 
             //Debug.Log("MaxDepth: " + maxDepth);
-            //Debug.Log("Time taken: " + (getTime() - startTime));
             //TimeRecorder.Instance.printStats();
             //TimeRecorder.Instance.printStat("node.GetTotalScore");
             if (callback != null)
@@ -235,6 +235,7 @@ public class AlphaBeta
 
 public class Node
 {
+    public int playerID = 0;
     public int score = -1;
     public TileState tile;
     public Dictionary<string, Tile> grid;
@@ -242,7 +243,7 @@ public class Node
     int winner = -1;
     public List<Node> children;
     public string note = "NONE";
-    public Node(Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, TileState tile)
+    public Node(int playerID, Dictionary<string, Tile> grid, List<TileState> playerMaxTiles, List<TileState> playerMinTiles, List<TileState> availableTiles, TileState tile)
     {
         this.grid = grid;
         //this.playerMaxTiles = new List<TileState>(playerMaxTiles);
@@ -251,51 +252,9 @@ public class Node
         this.playerMinTiles = playerMinTiles;
         this.availableTiles = availableTiles;
         this.tile = tile;
+        this.playerID = playerID;
     }
 
-
-    public Node getNextChildNode(int playerID)
-    {
-        if (availableTiles.Count == 0)
-            return null;
-        TileState ts = null;
-        ts = MovesBank.maxSafePattern(this.grid, playerID, true);
-        if (ts == null)
-        {
-            if (UnityEngine.Random.Range(0, 100) < 50)
-                while (true)
-                {
-                    ts = this.availableTiles[UnityEngine.Random.Range(0, this.availableTiles.Count)];
-                    if (ts.currentState == -1)
-                        break;
-                }
-            else
-            {
-                int i = 0;
-                while (++i < this.playerMaxTiles.Count)
-                {
-                    var mx = this.playerMaxTiles[UnityEngine.Random.Range(0, this.playerMaxTiles.Count)];
-                    var n = HexGridUtil.Neighbours(this.grid, mx.tile);
-                    foreach (var t in n)
-                    {
-                        var p = t.GetComponent<TileState>();
-                        if (p.currentState == -1)
-                        {
-                            ts = p;
-                            break;
-                        }
-                    }
-                }
-                if (ts == null)
-                    ts = this.availableTiles[UnityEngine.Random.Range(0, this.availableTiles.Count)];
-            }
-        }
-        else
-        {
-            Debug.LogError("BestMove Selected: " + ts.tile.index);
-        }
-        return new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, ts);
-    }
 
     public List<Node> Children(int playerID, int depth, bool randomMoveInLevels)
     {
@@ -365,7 +324,7 @@ public class Node
     {
         if (ts == null)
             return null;
-        Node n = new Node(grid, playerMaxTiles, playerMinTiles, availableTiles, ts);
+        Node n = new Node(this.playerID, grid, playerMaxTiles, playerMinTiles, availableTiles, ts);
         n.note = note;
         children.Add(n);
         return n;
@@ -376,7 +335,8 @@ public class Node
         bool terminalNode = false;
 
         // Game over?
-        this.winner = HexGridUtil.CheckGameOver(this.grid);
+        this.winner = HexGridUtil.CheckGameOver(this.playerID, this.playerMaxTiles, this.playerMinTiles);
+        //this.winner = HexGridUtil.CheckGameOver(this.grid);
         terminalNode = this.winner != -1;
         return terminalNode;
     }
@@ -385,12 +345,13 @@ public class Node
     {
         int totalScore = 0;
 
-        if (this.winner != -1)
+        if (this.winner != -1) {
+            //Debug.Log(this.playerID + " winning node: " + this.winner);
             if (this.winner == playerID)
                 return 1000 * (depth + 1);
             else
                 return -1000 * (depth + 1);
-
+        }
         totalScore = HexGridUtil.evaluate(playerMaxTiles, playerID) - HexGridUtil.evaluate(playerMinTiles, 1 - playerID);
 
         //totalScore = playerScores[playerID] - playerScores[1 - playerID];

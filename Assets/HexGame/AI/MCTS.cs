@@ -55,7 +55,6 @@ public class MCTS
     public bool destroy = false;
     double startTime, time = 0;
     public int budget = 2;
-    Dictionary<int, int> counts = new Dictionary<int, int>();
     public void UCTSearch(int mode, int playerID, Dictionary<string, Tile> grid, List<TileState> availableTiles, List<TileState> myTiles, List<TileState> opponentTiles, Action<TileState> callback)
     {
         TimeRecorder.Instance.resetTimer("DefaultPolicy");
@@ -89,16 +88,13 @@ public class MCTS
                 //Debug.Log("UCT Search, time: " + time);
                 TimeRecorder.Instance.startTimer("TreePolicy");
                 v = TreePolicy(root);
-                if (!counts.ContainsKey(v.depth))
-                    counts.Add(v.depth, 1);
-                else
-                    counts[v.depth]++;
                 if (maxDepth < v.depth)
                     maxDepth = v.depth;
                 //Debug.Log("UCT Search, next node with delta: " + v.delta);
                 TimeRecorder.Instance.stopTimer("TreePolicy");
                 TimeRecorder.Instance.startTimer("DefaultPolicy");
                 double delta = DefaultPolicy(v);
+                //Debug.Log("UCT Search, sim delta: " + delta);
                 TimeRecorder.Instance.stopTimer("DefaultPolicy");
                 TimeRecorder.Instance.startTimer("Backup");
 
@@ -112,7 +108,7 @@ public class MCTS
             MCTS_Node bestChild = SelectFinalMove(mode, root, 0);
             TileState ts = bestChild.tileState;
 
-            TimeRecorder.Instance.printStat("DefaultPolicy");
+            //TimeRecorder.Instance.printStat("DefaultPolicy");
             //TimeRecorder.Instance.printStat("TreePolicy");
             //TimeRecorder.Instance.printStat("Backup");
             //TimeRecorder.Instance.printStat("BestChild");
@@ -120,20 +116,6 @@ public class MCTS
             //TimeRecorder.Instance.printStat("isNonTerminal");
             //TimeRecorder.Instance.printStat("isNonTerminal - 1");
             //TimeRecorder.Instance.printStat("MCTS_AlphaBeta");
-
-            //int c = 0;
-            //foreach (var m in counts.Keys)
-            //{
-            //    c++;
-            //    if (c > 1000)
-            //    {
-            //        Debug.Log("break print");
-            //        break;
-            //    }
-            //    if (destroy)
-            //        break;
-            //    Debug.Log(m + " - " + counts[m]);
-            //}
 
             Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta / (double)bestChild.visits) + " maxDepth: " + maxDepth);
             callback(ts);
@@ -156,9 +138,122 @@ public class MCTS
         }
         while (current != null);
     }
-
     private double DefaultPolicy(MCTS_Node v)
     {
+        if (v.winner != -1)
+        {
+            if (v.winner == v.myPlayerID)
+            {
+                Debug.Log(v.myPlayerID + " Me Winner depth: " + v.depth + " index: " + v.tileState.tile.index);
+                return 100;
+            }
+            else
+            {
+                Debug.Log(v.myPlayerID + " Opponent Winner depth: " + v.depth + " index: " + v.tileState.tile.index);
+                return -100;
+            }
+        }
+        int[] win = new int[2];
+        int totalPlay = 0;
+        //var board = new Dictionary<string, Tile>(grid);
+        for (int i = 0; i < 5; i++)
+        {
+            //Debug.Log(i +" inner loop");
+            List<TileState> possibleMoves = new List<TileState>(v.possibleMoves);
+            List<TileState> changed = new List<TileState>();
+            List<TileState> myTriedMoves = new List<TileState>();
+            List<TileState> oppTriedMoves = new List<TileState>();
+
+            foreach (TileState ts in v.myTiles)
+            {
+                if (ts.currentState == -1)
+                {
+                    ts.currentState = v.myPlayerID;
+                    changed.Add(ts);
+                }
+            }
+            foreach (TileState ts in v.opponentTiles)
+            {
+                if (ts.currentState == -1)
+                {
+                    ts.currentState = 1 - v.myPlayerID;
+                    changed.Add(ts);
+                }
+            }
+
+            int currentTurn = v.myPlayerID;
+            int c = 0;
+            while (possibleMoves.Count > 0)
+            {
+                if(++c > 1000)
+                {
+                    Debug.LogError("Simulation exceeded budget");
+                    return 0;
+                }
+                var move = MovesBank.addRandomMove(possibleMoves);
+                
+                if (move == null) {
+                    Debug.Log("Weird! No moves available whereas game is not finised !?");
+                    break;
+                }
+                
+                possibleMoves.Remove(move);
+                if (currentTurn == v.myPlayerID)
+                {
+                    v.myTiles.Add(move);
+                    myTriedMoves.Add(move);
+                }
+                else { 
+                    v.opponentTiles.Add(move);
+                    oppTriedMoves.Add(move);
+                }
+                move.currentState = currentTurn;
+                currentTurn = 1 - currentTurn;
+                //int winner = HexGridUtil.CheckGameOver(grid);
+                int winner = -1;
+                int chainLength = HexGridUtil.evaluate(v.myTiles, v.myPlayerID);
+                if (chainLength >= 7)
+                    winner = v.myPlayerID;
+                else
+                {
+                    chainLength = HexGridUtil.evaluate(v.opponentTiles, 1 - v.myPlayerID);
+                    if (chainLength >= 7)
+                        winner = 1 - v.myPlayerID;
+                }
+                //Debug.Log("calc winner: " + winner);
+                if (winner != -1)
+                {
+                    totalPlay++;
+                    win[winner]++;
+                    //Debug.Log("Simulation terminal point: " + winner);
+                    break;
+                }
+            }
+
+            foreach (TileState ts in myTriedMoves)
+            {
+                v.myTiles.Remove(ts);
+                ts.currentState = -1;
+            }
+            foreach (TileState ts in oppTriedMoves)
+            {
+                v.opponentTiles.Remove(ts);
+                ts.currentState = -1;
+            }
+            foreach (TileState ts in changed)
+            {
+                ts.currentState = -1;
+            }
+        }
+
+        if (totalPlay == 0)
+            return 0;
+        return win[v.myPlayerID] / (double)totalPlay ;
+        //return win[v.myPlayerID] / (double)totalPlay * 10 - win[1 - v.myPlayerID] / (double)totalPlay * 10;
+    }
+    private double DefaultPolicyEval(MCTS_Node v)
+    {
+        bool isTerminal = !isNonTerminal(v);
         // have to handle win weight according to v.depth possibly
         if (v.winner != -1)
         {
@@ -206,7 +301,7 @@ public class MCTS
         //AlphaBeta ab = new AlphaBeta(v.myPlayerID);
         //ab.budget = 120;
         //ab.depthBudget = 2;
-        //Node n = ab.NextMove(this.grid, v.myTiles, v.opponentTiles, v.availableTiles, null);
+        //Node n = ab.NextMove(this.grid, v.myTiles, v.opponentTiles, v.possibleMoves, null);
         //TimeRecorder.Instance.stopTimer("MCTS_AlphaBeta");
         //return n.score;
         //return HexGridUtil.evaluate(v.myTiles, v.myPlayerID);
@@ -251,7 +346,7 @@ public class MCTS
 
         foreach (MCTS_Node child in current.childs)
         {
-            double UCB1 = 0;
+            double UCB1 = -1;
             if (mode == 0)
                 UCB1 = ((double)child.delta / (double)child.visits) + C * Math.Sqrt((2.0 * Math.Log((double)current.visits)) / (double)child.visits);
             else if (mode == 1)
@@ -296,6 +391,8 @@ public class MCTS
             return false;
         if (node.myTiles.Count < 8)
             return true;
+
+
         List<TileState> changed = new List<TileState>();
 
         foreach (TileState ts in node.myTiles)
@@ -314,16 +411,17 @@ public class MCTS
                 changed.Add(ts);
             }
         }
-        TimeRecorder.Instance.startTimer("isNonTerminal - 1");
-        node.winner = HexGridUtil.CheckGameOver(grid);
+        //TimeRecorder.Instance.startTimer("isNonTerminal - 1");
+        //node.winner = HexGridUtil.CheckGameOver(grid);
+        node.winner = HexGridUtil.CheckGameOver(node.myPlayerID, node.myTiles, node.opponentTiles);
         if (node.winner != -1)
             node.isTerminal = true;
-        TimeRecorder.Instance.stopTimer("isNonTerminal - 1");
+        //TimeRecorder.Instance.stopTimer("isNonTerminal - 1");
         foreach (TileState ts in changed)
         {
             ts.currentState = -1;
         }
-        TimeRecorder.Instance.stopTimer("isNonTerminal");
+        //TimeRecorder.Instance.stopTimer("isNonTerminal");
         return node.winner == -1;
     }
 }

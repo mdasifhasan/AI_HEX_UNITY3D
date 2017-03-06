@@ -173,6 +173,8 @@ public class TileState : MonoBehaviour
         foreach (Tile t in this.tile.neighbours)
         {
             TileState n = t.tileState;
+            if (n.tileSet == null)
+                n.tileSet = new TileSet(n);
             if (n.currentState == this.currentState)
             {
                 if (this.tileSet == null)

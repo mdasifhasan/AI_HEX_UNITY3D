@@ -8,7 +8,7 @@ public class TimeRecorder
     public static TimeRecorder Instance = new TimeRecorder();
     Dictionary<string, double> times = new Dictionary<string, double>();
     Dictionary<string, double> running = new Dictionary<string, double>();
-    bool disabled = true;
+    bool disabled = false;
     public double getTime()
     {
         var dateTimeNow = DateTime.Now;

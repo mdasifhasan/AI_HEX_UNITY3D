@@ -42,8 +42,8 @@ public class GameController : MonoBehaviour
 
     public void TestEvaluationFunction()
     {
-        //Debug.Log(0 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[0], 0));
-        //Debug.Log(1 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[1], 1));
+        Debug.Log(0 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[0], 0));
+        Debug.Log(1 + ": Evaluation score: " + HexGridUtil.evaluate(this.player_tiles[1], 1));
     }
 
     public Tile[] testMoves;
@@ -71,8 +71,10 @@ public class GameController : MonoBehaviour
     private void OnPlayFinished(TileState ts)
     {
         ts.setTileState(this.currentTurn);
+        this.player_tiles[this.currentTurn].Add(ts);
+        availableTiles.Remove(ts);
         //int go = CheckGameOver();
-        int go = HexGridUtil.CheckGameOver(grid.grid);
+        int go = HexGridUtil.CheckGameOver(0, player_tiles[0], player_tiles[1]);
         if (go != -1)
         {
             //Debug.Log("GameOver: " + go);
@@ -86,12 +88,8 @@ public class GameController : MonoBehaviour
             Restart();
             return;
         }
-        ts.updateTileSet();
-        availableTiles.Remove(ts);
-        this.player_tiles[this.currentTurn].Add(ts);
-
+        //ts.updateTileSet();
         TestEvaluationFunction();
-
         this.currentTurn = (this.currentTurn + 1) % 2;
         // this is necessary to switch to next turn after each turn is finished
         isCurrentTurnUpdated = true;
