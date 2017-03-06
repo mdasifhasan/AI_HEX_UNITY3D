@@ -112,14 +112,14 @@ public class MCTS
             MCTS_Node bestChild = SelectFinalMove(mode, root, 0);
             TileState ts = bestChild.tileState;
 
-            //TimeRecorder.Instance.printStat("DefaultPolicy");
+            TimeRecorder.Instance.printStat("DefaultPolicy");
             //TimeRecorder.Instance.printStat("TreePolicy");
             //TimeRecorder.Instance.printStat("Backup");
             //TimeRecorder.Instance.printStat("BestChild");
             //TimeRecorder.Instance.printStat("Expand");
             //TimeRecorder.Instance.printStat("isNonTerminal");
             //TimeRecorder.Instance.printStat("isNonTerminal - 1");
-            TimeRecorder.Instance.printStat("MCTS_AlphaBeta");
+            //TimeRecorder.Instance.printStat("MCTS_AlphaBeta");
 
             //int c = 0;
             //foreach (var m in counts.Keys)

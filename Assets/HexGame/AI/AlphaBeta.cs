@@ -100,7 +100,7 @@ public class AlphaBeta
         //else
         //    Debug.Log(i + " iterations" + " No Move Found!!!");
         //Debug.Log("MaxDepth: " + maxDepth);
-        //Debug.Log("Time taken: " + (getTime() - startTime));
+        Debug.Log("Time taken: " + (getTime() - startTime));
         //TimeRecorder.Instance.printStats();
 
         if (callback != null)
