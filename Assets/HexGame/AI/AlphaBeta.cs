@@ -168,6 +168,7 @@ public class AlphaBeta
             Node selected = null;
             foreach (Node child in node.Children(this.playerID, depthBudget - depth, this.randomMoveInLevels))
             {
+                child.tileSets = new Dictionary<TileState, TileSet>(node.tileSets);
                 child.tile.currentState = this.playerID;
                 child.playerMaxTiles.Add(child.tile);
                 child.availableTiles.Remove(child.tile);
@@ -224,6 +225,7 @@ public class Node
     public TileState tile;
     public Dictionary<string, Tile> grid;
     public List<TileState> playerMaxTiles, playerMinTiles, availableTiles;
+    public Dictionary<TileState, TileSet> tileSets = new Dictionary<TileState, TileSet>(); 
     int winner = -1;
     public List<Node> children;
     public string note = "NONE";

@@ -129,8 +129,9 @@ public class TileState : MonoBehaviour
             this.currentState = state;
     }
 
-    public void updateTileSet()
+    public void updateTileSet(Dictionary<TileState, TileSet> tileSets)
     {
+        this.tileSet = tileSets[this];
         if (this.tileSet == null)
         {
             int layer = HexGridUtil.getHexIndexForPlayer(this.currentState, this);
@@ -140,6 +141,7 @@ public class TileState : MonoBehaviour
                 TileState n = t.tileState;
                 if (n.currentState == this.currentState)
                 {
+                    n.tileSet = tileSets[n];
                     if (this.tileSet == null)
                     {
                         n.tileSet.set.Add(this);
@@ -161,6 +163,8 @@ public class TileState : MonoBehaviour
                             this.tileSet = n.tileSet;
                         }
                     }
+                    tileSets[this] = this.tileSet;
+                    tileSets[n] = n.tileSet;
                 }
             }
             if (this.tileSet == null) // no neighbours is of same color
@@ -168,6 +172,7 @@ public class TileState : MonoBehaviour
                 this.tileSet = new TileSet();
                 this.tileSet.set.Add(this);
                 this.tileSet.high = this.tileSet.low = layer;
+                tileSets[this] = this.tileSet;
             }
         }
         else

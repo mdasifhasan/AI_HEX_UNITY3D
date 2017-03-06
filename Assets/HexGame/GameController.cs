@@ -14,7 +14,7 @@ public class GameController : MonoBehaviour
     public List<TileState>[] player_tiles;
     public Grid grid;
     public GameObject uiRestart;
-
+    Dictionary<TileState, TileSet> tileSets = new Dictionary<TileState, TileSet>();
     // Use this for initialization
     void Start()
     {
@@ -22,6 +22,10 @@ public class GameController : MonoBehaviour
         if (grid == null)
             grid = FindObjectOfType<Grid>();
         availableTiles = new List<TileState>(FindObjectsOfType<TileState>());
+        foreach(TileState ts in availableTiles)
+        {
+            tileSets.Add(ts, null);
+        }
         player_tiles = new List<TileState>[2];
         player_tiles[0] = new List<TileState>();
         player_tiles[1] = new List<TileState>();
@@ -87,7 +91,7 @@ public class GameController : MonoBehaviour
             Restart();
             return;
         }
-        ts.updateTileSet();
+        ts.updateTileSet(tileSets);
         availableTiles.Remove(ts);
         this.player_tiles[this.currentTurn].Add(ts);
 
