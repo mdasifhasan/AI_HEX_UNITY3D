@@ -99,11 +99,11 @@ public class AlphaBeta
                 }
             }
 
-            Debug.Log("Time taken: " + (getTime() - startTime));
-            if (t != null)
-                Debug.Log(this.playerID + " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
-            else
-                Debug.Log(i + " iterations" + " No Move Found!!!");
+            //Debug.Log("Time taken: " + (getTime() - startTime));
+            //if (t != null)
+            //    Debug.Log(this.playerID + " iterations:" + i + " Final Move Selected: " + t.tile.tile.index + " with score: " + s + ", Note: " + t.note);
+            //else
+            //    Debug.Log(i + " iterations" + " No Move Found!!!");
 
 
             //Debug.Log("MaxDepth: " + maxDepth);

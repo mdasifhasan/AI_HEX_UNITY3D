@@ -323,7 +323,8 @@ public class Grid : MonoBehaviour {
 
         fil.sharedMesh = hexMesh;
 
-        ren.material = (hexMaterial) ? hexMaterial : UnityEditor.AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
+        //ren.material = (hexMaterial) ? hexMaterial : UnityEditor.AssetDatabase.GetBuiltinExtraResource<Material>("Default-Diffuse.mat");
+        ren.material = (hexMaterial) ;
 
         if (addColliders)
         {

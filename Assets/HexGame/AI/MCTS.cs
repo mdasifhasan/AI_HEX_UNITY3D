@@ -124,7 +124,7 @@ public class MCTS
             //TimeRecorder.Instance.printStat("isNonTerminal - 1");
             //TimeRecorder.Instance.printStat("MCTS_AlphaBeta");
 
-            Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta / (double)bestChild.visits) + " maxDepth: " + maxDepth);
+            //Debug.Log("Total iterations: " + iterations + " Best child: " + ts.tile.index + " score: " + bestChild.delta + " visits: " + bestChild.visits + " avgScore: " + (bestChild.delta / (double)bestChild.visits) + " maxDepth: " + maxDepth);
             callback(ts);
         }
         catch (Exception e)

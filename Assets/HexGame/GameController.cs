@@ -9,15 +9,34 @@ public class GameController : MonoBehaviour
 
     public int currentTurn = 0;
     public Text textCurrentPlayer;
+    public Text[] textPlayer1, textPlayer2;
     public Player[] players;
     public List<TileState> availableTiles;
     public List<TileState>[] player_tiles;
     public Grid grid;
-    public GameObject uiRestart;
+    public GameObject uiGameOver;
+
+    public Player[] list_player_1, list_player_2;
+
     // Use this for initialization
     void Start()
     {
-        uiRestart.SetActive(false);
+        int player1 = PlayerPrefs.GetInt("player1");
+        int player2 = PlayerPrefs.GetInt("player2");
+        this.players[0] = this.list_player_1[player1];
+        this.players[1] = this.list_player_2[player2];
+
+        foreach(Text t in textPlayer1)
+        {
+            t.text = this.players[0].name;
+        }
+
+        foreach (Text t in textPlayer2)
+        {
+            t.text = this.players[1].name;
+        }
+
+        uiGameOver.SetActive(false);
         if (grid == null)
             grid = FindObjectOfType<Grid>();
         availableTiles = new List<TileState>(FindObjectsOfType<TileState>());
@@ -37,12 +56,16 @@ public class GameController : MonoBehaviour
 
     public void Restart()
     {
+        SceneManager.LoadScene(1);
+    }
+    public void Menu()
+    {
         SceneManager.LoadScene(0);
     }
 
     public void TestEvaluationFunction()
     {
-        Debug.Log(HexGridUtil.evaluate(this.player_tiles[0], 0) + " vs " + HexGridUtil.evaluate(this.player_tiles[1], 1));
+        //Debug.Log(HexGridUtil.evaluate(this.player_tiles[0], 0) + " vs " + HexGridUtil.evaluate(this.player_tiles[1], 1));
     }
 
     public Tile[] testMoves;
@@ -77,14 +100,14 @@ public class GameController : MonoBehaviour
         if (go != -1)
         {
             //Debug.Log("GameOver: " + go);
-            //uiRestart.SetActive(true);
+            uiGameOver.SetActive(true);
             if (this.currentTurn == 0)
                 textCurrentPlayer.text = "Winner: Player 1";
             else
                 textCurrentPlayer.text = "Winner: Player 2";
             Stats.RecordGame(players[0].gameObject.name, players[1].gameObject.name, tossWon, this.currentTurn);
             Stats.Print();
-            Restart();
+            //Restart();
             return;
         }
         //ts.updateTileSet();
