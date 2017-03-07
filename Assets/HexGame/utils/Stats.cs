@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -46,8 +47,9 @@ public class Stat  {
 
     public override string ToString()
     {
-        Debug.LogError(string.Format("totalPlay: {0}, tossWon[0]: {1}, tossWon[1]: {2}, Won[0]: {3}, Won[1]: {4}, toss_won_then_won[0]: {5}, toss_lost_then_won[0]: {6}, toss_won_then_won[1]: {7}, toss_lost_then_won[1]: {8}", totalPlay, tossWon[0], tossWon[1], Won[0], Won[1], toss_won_then_won[0], toss_lost_then_won[0], toss_won_then_won[1], toss_lost_then_won[1]));
-        return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", totalPlay, tossWon[0], tossWon[1], Won[0], Won[1], toss_won_then_won[0], toss_lost_then_won[0], toss_won_then_won[1], toss_lost_then_won[1]);
+        //Debug.LogError(string.Format("totalPlay: {0}, tossWon[0]: {1}, tossWon[1]: {2}, Won[0]: {3}, Won[1]: {4}, toss_won_then_won[0]: {5}, toss_lost_then_won[0]: {6}, toss_won_then_won[1]: {7}, toss_lost_then_won[1]: {8}", totalPlay, tossWon[0], tossWon[1], Won[0], Won[1], toss_won_then_won[0], toss_lost_then_won[0], toss_won_then_won[1], toss_lost_then_won[1]));
+        //return string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", totalPlay, tossWon[0], tossWon[1], Won[0], Won[1], toss_won_then_won[0], toss_lost_then_won[0], toss_won_then_won[1], toss_lost_then_won[1]);
+        return string.Format("totalPlay: {0}, tossWon[0]: {1}, tossWon[1]: {2}, Won[0]: {3}, Won[1]: {4}, toss_won_then_won[0]: {5}, toss_lost_then_won[0]: {6}, toss_won_then_won[1]: {7}, toss_lost_then_won[1]: {8}", totalPlay, tossWon[0], tossWon[1], Won[0], Won[1], toss_won_then_won[0], toss_lost_then_won[0], toss_won_then_won[1], toss_lost_then_won[1]);
     }
     public string Labels()
     {
@@ -82,6 +84,18 @@ public class Stats
             Debug.LogError(stats[k].player_name_1 + " - " + stats[k].player_name_2 + " : " + stats[k]);
         }
     }
+
+    internal static string getString()
+    {
+        string output = "";
+        foreach (var k in stats.Keys)
+        {
+            output += stats[k].player_name_1 + " - " + stats[k].player_name_2 + "\n";
+            output += stats[k] + "\n\n";
+        }
+        return output;
+    }
+
     public static void PrintLabels()
     {
         Debug.LogError(string.Format("totalPlay, tossWon[0], tossWon[1], Won[0], Won[1], toss_won_then_won[0], toss_lost_then_won[0], toss_won_then_won[1], toss_lost_then_won[1]"));

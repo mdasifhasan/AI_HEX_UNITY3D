@@ -63,6 +63,18 @@ public class GameController : MonoBehaviour
         StartCoroutine(StartGame());
     }
 
+    public InputField textStats;
+    public GameObject stats;
+    public void ShowStats()
+    {
+        textStats.text = Stats.getString();
+        stats.SetActive(true);
+    }
+    public void CloseStats()
+    {
+        stats.SetActive(false);
+    }
+
     public void Restart()
     {
         SceneManager.LoadScene(1);
@@ -81,12 +93,12 @@ public class GameController : MonoBehaviour
 
     IEnumerator StartGame()
     {
-        //textCurrentPlayer.text = "Tossing";
-        //yield return new WaitForSeconds(.5f);
-        //textCurrentPlayer.text = "Tossing.";
-        //yield return new WaitForSeconds(.5f);
-        //textCurrentPlayer.text = "Tossing..";
-        //yield return new WaitForSeconds(.5f);
+        textCurrentPlayer.text = "Tossing";
+        yield return new WaitForSeconds(.5f);
+        textCurrentPlayer.text = "Tossing.";
+        yield return new WaitForSeconds(.5f);
+        textCurrentPlayer.text = "Tossing..";
+        yield return new WaitForSeconds(.5f);
         textCurrentPlayer.text = "Tossing...";
         yield return new WaitForSeconds(.5f);
         this.currentTurn = Random.Range(0, 2);
@@ -111,9 +123,9 @@ public class GameController : MonoBehaviour
             //Debug.Log("GameOver: " + go);
             uiGameOver.SetActive(true);
             if (this.currentTurn == 0)
-                textCurrentPlayer.text = "Winner: Player 1";
+                textCurrentPlayer.text = "Winner: " + players[0].name;
             else
-                textCurrentPlayer.text = "Winner: Player 2";
+                textCurrentPlayer.text = "Winner: " + players[1].name;
             Stats.RecordGame(players[0].gameObject.name, players[1].gameObject.name, tossWon, this.currentTurn);
             Stats.Print();
             //Restart();
@@ -221,9 +233,9 @@ public class GameController : MonoBehaviour
     private void UpdateCurrentPlayerText()
     {
         if (this.currentTurn == 0)
-            textCurrentPlayer.text = "Turn: Player 1";
+            textCurrentPlayer.text = "Turn: " + players[0].name;
         else
-            textCurrentPlayer.text = "Turn: Player 2";
+            textCurrentPlayer.text = "Turn: " + players[1].name;
     }
 
 
