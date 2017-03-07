@@ -32,6 +32,8 @@ public class PlayerMCTS : Player
         mcts.totalSimulation = totalSimulation;
         isMoveComputed = false;
         mcts.C = C;
+        MCTS.TreeSize = 0;
+        MCTS.TreeSize = 0;
         thread = new Thread(() => mcts.UCTSearch(mode, this.MyTurnID, gc.grid.grid, gc.availableTiles, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], callback));
         thread.Start();
     }
@@ -40,7 +42,7 @@ public class PlayerMCTS : Player
         if (mcts != null)
             mcts.destroy = true;
     }
-
+    int maxTreeSize = 0;
     bool isMoveComputed = false;
     TileState ts = null;
     void callback(TileState ts)
@@ -48,6 +50,9 @@ public class PlayerMCTS : Player
         //Debug.Log("Move selected: " + ts.tile.index);
         isMoveComputed = true;
         this.ts = ts;
+        if (maxTreeSize < MCTS.TreeSize)
+            maxTreeSize = MCTS.TreeSize;
+        Debug.LogWarning(this.MyTurnID + " Current Move Max Tree Size: " + MCTS.TreeSize + " Max Tree Size: " + maxTreeSize);
     }
 
     private void Update()

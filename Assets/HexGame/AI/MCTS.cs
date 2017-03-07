@@ -58,8 +58,11 @@ public class MCTS
     public bool destroy = false;
     double startTime, time = 0;
     public int budget = 2;
+    public static int TreeSize = 0;
+    public int mode = 0;
     public void UCTSearch(int mode, int playerID, Dictionary<string, Tile> grid, List<TileState> availableTiles, List<TileState> myTiles, List<TileState> opponentTiles, Action<TileState> callback)
     {
+        this.mode = mode;
         TimeRecorder.Instance.resetTimer("DefaultPolicy");
         TimeRecorder.Instance.resetTimer("TreePolicy");
         TimeRecorder.Instance.resetTimer("Backup");
@@ -334,8 +337,27 @@ public class MCTS
         if (totalPlay == 0)
             return 0;
         //return win[v.myPlayerID] / (double)totalPlay;
-        return win[v.myPlayerID] / (double)totalPlay * 1 - win[1 - v.myPlayerID] / (double)totalPlay * 1;
+        double score = 0;
+        if (this.mode == 0)
+            score = win[v.myPlayerID] / (double)totalPlay * 1 - win[1 - v.myPlayerID] / (double)totalPlay * 1;
+        else if (this.mode == 2 || this.mode == 3)
+            score = win[v.myPlayerID];
+        else if (this.mode == 4)
+            score = score = win[v.myPlayerID] / (double)totalPlay;
+
+        return score;
     }
+
+
+    /*
+ default = 0
+max number of simulations == max visits = 1
+max number of wins = TBI = 2
+highest win rate = TBI just player's win rate num_win / visits = 3
+highest win rate and highest number of simulations associated with the move  = 4
+
+     */
+
     private double DefaultPolicyEval(MCTS_Node v)
     {
         bool isTerminal = !isNonTerminal(v);
@@ -425,8 +447,18 @@ public class MCTS
         node.childs.Add(child);
         //Debug.Log("expanding child to depth: " + child.depth);
         TimeRecorder.Instance.stopTimer("Expand");
+        TreeSize++;
         return child;
     }
+
+    /*
+ default = 0
+max number of simulations == max visits = 1
+max number of wins = TBI = 2
+highest win rate = TBI just player's win rate num_win / visits = 3
+highest win rate and highest number of simulations associated with the move  = 4
+
+     */
     public MCTS_Node SelectFinalMove(int mode, MCTS_Node current, float C)
     {
         MCTS_Node bestChild = null;
@@ -438,9 +470,15 @@ public class MCTS
             if (mode == 0)
                 UCB1 = ((double)child.delta / (double)child.visits) + C * Math.Sqrt((2.0 * Math.Log((double)current.visits)) / (double)child.visits);
             else if (mode == 1)
-                UCB1 = ((double)child.delta / (double)child.visits) * 2 + child.visits;
-            else
                 UCB1 = child.visits;
+            else if (mode == 2)
+                UCB1 = child.delta;
+            else if (mode == 3)
+                UCB1 = ((double)child.delta / (double)child.visits);
+            else if (mode == 4)
+                UCB1 = ((double)child.delta / (double)child.visits) ;
+            else
+                UCB1 = ((double)child.delta / (double)child.visits) + C * Math.Sqrt((2.0 * Math.Log((double)current.visits)) / (double)child.visits);
 
             if (UCB1 > best)
             {
