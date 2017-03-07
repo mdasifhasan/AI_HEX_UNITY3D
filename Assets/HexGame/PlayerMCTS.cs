@@ -8,10 +8,10 @@ public class PlayerMCTS : Player
 
     public float testDelay = 0.0f;
     public int budget = 3;
+    public int totalSimulation = 2;
+    public float C = 1.44f;
     Thread thread;
     MCTS mcts;
-    public int weightChainLength = 1;
-    public int weightHorizontalNeighbours = 0;
 
     public int mode = 0;
     public override void StartPlay(GameController gc)
@@ -29,9 +29,9 @@ public class PlayerMCTS : Player
 
         mcts = new MCTS();
         mcts.budget = budget;
+        mcts.totalSimulation = totalSimulation;
         isMoveComputed = false;
-        AstarData.weightChainLength = weightChainLength;
-        AstarData.weightHorizontalNeighbours = weightHorizontalNeighbours;
+        mcts.C = C;
         thread = new Thread(() => mcts.UCTSearch(mode, this.MyTurnID, gc.grid.grid, gc.availableTiles, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], callback));
         thread.Start();
     }

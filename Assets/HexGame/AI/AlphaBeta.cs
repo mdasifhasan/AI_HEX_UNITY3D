@@ -139,11 +139,16 @@ public class AlphaBeta
 
     int maxDepth = -1;
 
+    public static int TotalNodesEvaluated = 0;
+    public static int MaxTreeSize = 0;
+    public static int TreeSize = 0;
     /*
      * May be when breaking for out of budget, the score need be backed up
      */
     public RetIterate Iterate(Node node, int depth, int alpha, int beta, bool Player)
     {
+
+
         if (maxDepth == -1 || maxDepth > depth)
             maxDepth = depth;
         i++;
@@ -155,7 +160,7 @@ public class AlphaBeta
             //int score = node.GetTotalScore(this.playerID, Player, initialScore);
             int score = Player ? 9999 : -9999;
             node.score = score;
-            //Debug.Log("Breaking for out of budget, depth: " + depth + " score: " + node.score);
+            Debug.Log("Breaking for out of budget, depth: " + depth + " score: " + node.score);
             return new RetIterate(score, node);
         }
 
@@ -185,6 +190,7 @@ public class AlphaBeta
                 //child.tileSets = new Dictionary<TileState, TileSet>(node.tileSets);
                 //child.tile.updateTileSet(child.tileSets);
                 var result = Iterate(child, depth - 1, alpha, beta, !Player);
+                TreeSize--;
                 int a = alpha;
                 alpha = Math.Max(alpha, result.score);
                 //Debug.Log("Alpha updated from: " + a + " to: " + alpha + " at depth: " + depth);
@@ -214,6 +220,7 @@ public class AlphaBeta
                 //child.tileSets = new Dictionary<TileState, TileSet>(node.tileSets);
                 //child.tile.updateTileSet(child.tileSets);
                 var result = Iterate(child, depth - 1, alpha, beta, !Player);
+                AlphaBeta.TreeSize--;
                 int b = beta;
                 beta = Math.Min(beta, result.score);
                 //Debug.Log("Beta updated from: " + b + " to: " + beta + " at depth: " + depth);
@@ -315,6 +322,11 @@ public class Node
             currentTiles.Remove(ts);
             createNode(ts, children, "RANDOM");
         }
+
+        AlphaBeta.TreeSize += children.Count;
+        if (AlphaBeta.MaxTreeSize < AlphaBeta.TreeSize)
+            AlphaBeta.MaxTreeSize = AlphaBeta.TreeSize;
+
         //Debug.Log(depth + " Total children added: " + this.children.Count);
 
         // Create your subtree here and return the results
@@ -343,6 +355,7 @@ public class Node
 
     public int GetTotalScore(int playerID, bool Player, int depth)
     {
+        AlphaBeta.TotalNodesEvaluated++;
         int totalScore = 0;
 
         if (this.winner != -1) {

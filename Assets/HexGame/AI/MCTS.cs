@@ -53,6 +53,7 @@ public class MCTS_Node
 
 public class MCTS
 {
+    public float C = 1.44f;
     Dictionary<string, Tile> grid;
     public bool destroy = false;
     double startTime, time = 0;
@@ -111,7 +112,7 @@ public class MCTS
             MCTS_Node bestChild = SelectFinalMove(mode, root, 0);
             TileState ts = bestChild.tileState;
 
-            TimeRecorder.Instance.printStat("DefaultPolicy");
+            //TimeRecorder.Instance.printStat("DefaultPolicy");
             //TimeRecorder.Instance.printStat("TreePolicy");
             //TimeRecorder.Instance.printStat("Backup");
             //TimeRecorder.Instance.printStat("BestChild");
@@ -148,12 +149,12 @@ public class MCTS
             if (v.winner == v.myPlayerID)
             {
                 //Debug.Log(v.myPlayerID + " Me Winner depth: " + v.depth + " index: " + v.tileState.tile.index);
-                return 100;
+                return 1;
             }
             else
             {
                 //Debug.Log(v.myPlayerID + " Opponent Winner depth: " + v.depth + " index: " + v.tileState.tile.index);
-                return -100;
+                return -1;
             }
         }
         int[] win = new int[2];
@@ -181,7 +182,7 @@ public class MCTS
         }
         int sizeMoves = possibleMoves.Count;
         //var board = new Dictionary<string, Tile>(grid);
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < this.totalSimulation; i++)
         {
             //possibleMoves = new List<TileState>(v.possibleMoves);
             //Debug.Log(i + " inner loop, BeginSizeMoves: " + sizeMoves + " nowSizeMoves: " + possibleMoves.Count);
@@ -332,8 +333,8 @@ public class MCTS
         }
         if (totalPlay == 0)
             return 0;
-        return win[v.myPlayerID] / (double)totalPlay;
-        //return win[v.myPlayerID] / (double)totalPlay * 10 - win[1 - v.myPlayerID] / (double)totalPlay * 10;
+        //return win[v.myPlayerID] / (double)totalPlay;
+        return win[v.myPlayerID] / (double)totalPlay * 1 - win[1 - v.myPlayerID] / (double)totalPlay * 1;
     }
     private double DefaultPolicyEval(MCTS_Node v)
     {
@@ -400,7 +401,7 @@ public class MCTS
             else
             {
                 //Debug.Log("Node fully expanded");
-                MCTS_Node b = BestChild(current, 1.44f);
+                MCTS_Node b = BestChild(current, C);
                 if (b == null)
                     break;
                 else
@@ -409,6 +410,8 @@ public class MCTS
         return current;
     }
     System.Random Rand = new System.Random();
+    public int totalSimulation  = 2;
+
     public MCTS_Node Expand(MCTS_Node node)
     {
         TimeRecorder.Instance.startTimer("Expand");

@@ -10,8 +10,6 @@ public class PlayerAI : Player
     public int TimeBudget = 120;
     public int DepthBudget = 3;
     public bool randomMoveInLevels = false;
-    public int weightChainLength = 1;
-    public int weightHorizontalNeighbours = 0;
     public override void StartPlay(GameController gc)
     {
         base.StartPlay(gc);
@@ -31,9 +29,9 @@ public class PlayerAI : Player
         ab.randomMoveInLevels = randomMoveInLevels;
         isMoveComputed = false;
         ts = null;
-
-        AstarData.weightChainLength = this.weightChainLength;
-        AstarData.weightHorizontalNeighbours = this.weightHorizontalNeighbours;
+        AlphaBeta.TotalNodesEvaluated = 0;
+        AlphaBeta.MaxTreeSize = 0;
+        AlphaBeta.TreeSize = 0;
         Thread thread = new Thread(() => ab.NextMove(gc.grid.grid, gc.player_tiles[gc.currentTurn], gc.player_tiles[1 - gc.currentTurn], gc.availableTiles, callback));
         thread.Start();
         
@@ -43,8 +41,17 @@ public class PlayerAI : Player
 
     bool isMoveComputed = false;
     TileState ts = null;
+    int maxTotalNodesEvaluated = 0;
+    int maxTreeSize = 0;
     void callback(TileState ts, int score)
     {
+        
+        if (maxTotalNodesEvaluated < AlphaBeta.TotalNodesEvaluated)
+            maxTotalNodesEvaluated = AlphaBeta.TotalNodesEvaluated;
+        if (maxTreeSize < AlphaBeta.MaxTreeSize)
+            maxTreeSize = AlphaBeta.MaxTreeSize;
+        Debug.LogWarning(this.MyTurnID +" Total Node Evaluated: " + AlphaBeta.TotalNodesEvaluated + " Max total nodes evaluated: " + maxTotalNodesEvaluated);
+        Debug.LogWarning(this.MyTurnID + " Current Move Max Tree Size: " + AlphaBeta.MaxTreeSize + " Max Tree Size: " + maxTreeSize);
         isMoveComputed = true;
         this.ts = ts;
     }
