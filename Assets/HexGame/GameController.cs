@@ -21,6 +21,15 @@ public class GameController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        list_player_1[1].GetComponent<PlayerAI>().TimeBudget = PlayerPrefs.GetInt("p1_time_ab", 120);
+        list_player_1[1].GetComponent<PlayerAI>().DepthBudget = PlayerPrefs.GetInt("p1_depth_ab", 4);
+        list_player_2[1].GetComponent<PlayerAI>().TimeBudget = PlayerPrefs.GetInt("p2_time_ab", 120);
+        list_player_2[1].GetComponent<PlayerAI>().DepthBudget = PlayerPrefs.GetInt("p2_depth_ab", 4);
+        list_player_1[2].GetComponent<PlayerMCTS>().budget = PlayerPrefs.GetInt("p1_time_mcts", 5);
+        list_player_1[2].GetComponent<PlayerMCTS>().totalSimulation = PlayerPrefs.GetInt("p1_sim_mcts", 5);
+        list_player_2[2].GetComponent<PlayerMCTS>().budget = PlayerPrefs.GetInt("p2_time_mcts", 5);
+        list_player_2[2].GetComponent<PlayerMCTS>().totalSimulation = PlayerPrefs.GetInt("p2_sim_mcts", 5);
+
         int player1 = PlayerPrefs.GetInt("player1");
         int player2 = PlayerPrefs.GetInt("player2");
         this.players[0] = this.list_player_1[player1];
