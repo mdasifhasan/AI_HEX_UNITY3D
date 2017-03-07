@@ -157,6 +157,12 @@ public class MCTS
             else
             {
                 //Debug.Log(v.myPlayerID + " Opponent Winner depth: " + v.depth + " index: " + v.tileState.tile.index);
+                if (this.mode == 0)
+                    return -1;
+                else if (this.mode == 2 || this.mode == 3)
+                    return 0;
+                else if (this.mode == 4)
+                    return 0;
                 return -1;
             }
         }
@@ -343,7 +349,7 @@ public class MCTS
         else if (this.mode == 2 || this.mode == 3)
             score = win[v.myPlayerID];
         else if (this.mode == 4)
-            score = score = win[v.myPlayerID] / (double)totalPlay;
+            score = win[v.myPlayerID] / (double)totalPlay;
 
         return score;
     }
